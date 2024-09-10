@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,16 +13,38 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 
+interface Image {
+  url: string;
+  width: number;
+  height: number;
+}
+
+interface PositionedImage extends Image {
+  x: number;
+  y: number;
+}
+
 export default function FullPageCanvas() {
-  const [images, setImages] = useState<
-    Array<{ url: string; x: number; y: number; width: number; height: number }>
-  >([]);
-  const [newImage, setNewImage] = useState<{
-    url: string;
-    width: number;
-    height: number;
-  } | null>(null);
+  const [images, setImages] = useState<Image[]>([]);
+  const [newImage, setNewImage] = useState<Image | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (canvasRef.current) {
+        setCanvasSize({
+          width: canvasRef.current.offsetWidth,
+          height: canvasRef.current.offsetHeight,
+        });
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
+    return () => window.removeEventListener("resize", updateCanvasSize);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,35 +71,79 @@ export default function FullPageCanvas() {
     }
   };
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (newImage && canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      // Check if the new image overlaps with any existing images
-      const overlap = images.some(
-        (img) =>
-          x < img.x + img.width &&
-          x + newImage.width > img.x &&
-          y < img.y + img.height &&
-          y + newImage.height > img.y
-      );
-
-      if (!overlap) {
-        setImages((prev) => [...prev, { ...newImage, x, y }]);
-        setNewImage(null);
-      }
+  const addImage = () => {
+    if (newImage) {
+      const updatedImages = [...images, newImage];
+      setImages(updatedImages);
+      setNewImage(null);
+      setIsDialogOpen(false);
     }
   };
 
+  const calculateImagePositions = (): PositionedImage[] => {
+    const positionedImages: PositionedImage[] = [];
+    const gaps: { x: number; y: number; width: number; height: number }[] = [
+      { x: 0, y: 0, width: canvasSize.width, height: Infinity },
+    ];
+
+    images.forEach((image) => {
+      let placed = false;
+      for (let i = 0; i < gaps.length; i++) {
+        const gap = gaps[i];
+        if (image.width <= gap.width && image.height <= gap.height) {
+          // Place the image in this gap
+          positionedImages.push({ ...image, x: gap.x, y: gap.y });
+          placed = true;
+
+          // Update gaps
+          if (image.width < gap.width) {
+            gaps.push({
+              x: gap.x + image.width,
+              y: gap.y,
+              width: gap.width - image.width,
+              height: image.height,
+            });
+          }
+          if (image.height < gap.height) {
+            gaps.push({
+              x: gap.x,
+              y: gap.y + image.height,
+              width: image.width,
+              height: gap.height - image.height,
+            });
+          }
+          gaps.splice(i, 1);
+          break;
+        }
+      }
+
+      if (!placed) {
+        // If no suitable gap was found, place at the bottom
+        const maxY = Math.max(
+          ...positionedImages.map((img) => img.y + img.height),
+          0
+        );
+        positionedImages.push({ ...image, x: 0, y: maxY });
+        gaps.push({
+          x: image.width,
+          y: maxY,
+          width: canvasSize.width - image.width,
+          height: Infinity,
+        });
+      }
+
+      // Sort gaps by y-coordinate, then x-coordinate
+      gaps.sort((a, b) => a.y - b.y || a.x - b.x);
+    });
+
+    return positionedImages;
+  };
+
+  const positionedImages = calculateImagePositions();
+
   return (
-    <div
-      ref={canvasRef}
-      className="fixed inset-0 bg-gray-100 cursor-crosshair"
-      onClick={handleCanvasClick}
-    >
-      {images.map((image, index) => (
+    <div ref={canvasRef} className="fixed inset-0 bg-gray-100 overflow-auto">
+      {positionedImages.map((image, index) => (
         <div
           key={index}
           className="absolute"
@@ -96,14 +162,15 @@ export default function FullPageCanvas() {
         </div>
       ))}
 
-      <Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button className="fixed bottom-4 right-4 rounded-full w-12 h-12 p-0">
             <Plus className="h-6 w-6" />
             <span className="sr-only">Add Image</span>
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white text-">
+
+        <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
             <DialogTitle>Add New Image</DialogTitle>
           </DialogHeader>
@@ -133,8 +200,8 @@ export default function FullPageCanvas() {
                     value={newImage.width}
                     onChange={handleImageSizeChange}
                     className="col-span-3"
-                    min="10"
-                    max="500"
+                    min="1"
+                    max="400"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -148,13 +215,11 @@ export default function FullPageCanvas() {
                     value={newImage.height}
                     onChange={handleImageSizeChange}
                     className="col-span-3"
-                    min="10"
-                    max="500"
+                    min="1"
+                    max="400"
                   />
                 </div>
-                <p className="text-sm text-gray-500">
-                  Click on the canvas to place the image
-                </p>
+                <Button onClick={addImage}>Add Image</Button>
               </>
             )}
           </div>
