@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
+import React from "react";
 
 interface Image {
   url: string;
@@ -137,7 +138,7 @@ export default function FullPageCanvas() {
     });
 
     return positionedImages;
-  };
+  }
 
   const positionedImages = calculateImagePositions();
 
