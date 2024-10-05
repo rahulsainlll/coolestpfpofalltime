@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  twitterId     String   @unique // X (Twitter) user ID
+  username      String?  // Username of the user from X (Twitter)
+  pfpUrl        String?  // The URL of their profile picture
+  profilePicture ProfilePicture[] // Link to the profile picture
+  votes         Vote[]   // Votes cast by the user
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ProfilePicture {
+  id        Int      @id @default(autoincrement())
+  pfpUrl    String   // URL of the profile picture from X (Twitter)
+  userId    Int      // Link to the user who owns the profile picture
+  user      User     @relation(fields: [userId], references: [id])
+  votes     Vote[]   // Votes cast on this profile picture
+  voteCount Int      @default(0) // Total vote count
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vote {
+  id               Int      @id @default(autoincrement())
+  userId           Int      // Link to the user who voted
+  user             User     @relation(fields: [userId], references: [id])
+  profilePictureId Int      // Link to the profile picture voted on
+  profilePicture   ProfilePicture @relation(fields: [profilePictureId], references: [id])
+  value            Int      // Value of the vote (+1 for upvote, -1 for downvote)
+  createdAt        DateTime @default(now())
+}
