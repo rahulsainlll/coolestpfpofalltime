@@ -4,9 +4,12 @@ const nextConfig = {
     remotePatterns: [
       {
         hostname: "pbs.twimg.com",
-      }
-    ]
-  }
+      },
+      {
+        hostname: "via.placeholder.com", // Add this line
+      },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -16,6 +16,9 @@ export default async function Leaderboard() {
       profilePicture: true
     }
   });
+  console.log(`user: ${users}`); 
+  console.log('Fetched users:', JSON.stringify(users, null, 2));
+
   
   return (
     <Layout>
