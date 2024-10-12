@@ -90,8 +90,10 @@ export async function POST(req: Request) {
   try {
     // Find the user in our database using the Kinde user ID
     const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id },
+      where: { twitterId: `${userId}` },
     });
+
+    console.log(dbUser);
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found in database' }, { status: 404 });

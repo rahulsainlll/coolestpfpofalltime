@@ -1,10 +1,11 @@
 import Layout from "@/components/layout";
 import ProfileCard from "@/components/ProfileCard";
 import { prisma } from "@/lib/prisma";
+import { UserWithRelations } from "@/types";
 import { User } from "@prisma/client";
 
 export default async function Leaderboard() {
-  let users: User[] = [];
+  let users: UserWithRelations[] = [];
 
   try {
     users = await prisma.user.findMany({
@@ -23,7 +24,7 @@ export default async function Leaderboard() {
     console.error('Error fetching users:', error);
   }
 
-  console.log('Fetched users:', JSON.stringify(users, null, 2));
+  // console.log('Fetched users:', JSON.stringify(users, null, 2));
 
   return (
     <Layout>
