@@ -80,10 +80,38 @@ export default function ProfilePictureCanvas() {
     return positionedUsers
   }
 
-  const handleVote = (userId: string) => {
-    console.log(`Voted for user: ${userId}`)
-    // Here you would typically send a request to your API to record the vote
+  const handleVote = async (userId: string) => {
+    try {
+      const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profilePictureId: userId }),
+      })
+      if (!response.ok) throw new Error('Voting failed')
+      // Refresh users after voting
+      fetchUsers()
+    } catch (error) {
+      console.error('Error voting:', error)
+      setError('Failed to cast vote. Please try again.')
+    }
   }
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users')
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      const data = await response.json()
+      setUsers(data)
+      setError(null)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      setError('Failed to fetch users. Please try again later.')
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const positionedUsers = calculateUserPositions()
 

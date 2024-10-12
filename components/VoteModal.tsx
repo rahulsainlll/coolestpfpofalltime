@@ -18,19 +18,32 @@ interface VoteModalProps {
 
 export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
+  const [isVoting, setIsVoting] = useState(false)
 
-  const handleVote = () => {
+  const handleVote = async () => {
     if (selectedUser) {
-      onVote(selectedUser)
-      onClose()
+      setIsVoting(true)
+      try {
+        const response = await fetch('/api/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profilePictureId: selectedUser }),
+        })
+        if (!response.ok) throw new Error('Voting failed')
+        onVote(selectedUser)
+      } catch (error) {
+        console.error('Error voting:', error)
+      } finally {
+        setIsVoting(false)
+        onClose()
+      }
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader >
-        </DialogHeader>
+        <DialogHeader>Vote for the Coolest PFP</DialogHeader>
         <div className="grid grid-cols-2 gap-4">
           {users.slice(0, 4).map((user) => (
             <div
@@ -51,8 +64,8 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
             </div>
           ))}
         </div>
-        <Button onClick={handleVote} disabled={!selectedUser} className="mt-4 w-full">
-          Submit Vote
+        <Button onClick={handleVote} disabled={!selectedUser || isVoting} className="mt-4 w-full">
+          {isVoting ? 'Voting...' : 'Submit Vote'}
         </Button>
       </DialogContent>
     </Dialog>
