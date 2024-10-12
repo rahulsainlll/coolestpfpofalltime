@@ -6,21 +6,22 @@ import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
-import { UserWithRelations } from "@/types/types"
 
 interface User {
-  id: string
+  id: number
+  twitterId: string
   pfpUrl: string
   username: string
+  totalVotes: number
 }
 
-interface PositionedUser extends UserWithRelations {
+interface PositionedUser extends User {
   x: number
   y: number
 }
 
 export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<UserWithRelations[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -43,64 +44,6 @@ export default function ProfilePictureCanvas() {
     return () => window.removeEventListener("resize", updateCanvasSize)
   }, [])
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/users')
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
-        setUsers(data)
-        setError(null)
-      } catch (error) {
-        console.error('Error fetching users:', error)
-        setError('Failed to fetch users. Please try again later.')
-      }
-    }
-
-    fetchUsers()
-  }, [])
-
-  const calculateUserPositions = (): PositionedUser[] => {
-    const positionedUsers: PositionedUser[] = []
-    const imageSize = 100 // Size of each profile picture
-    const gap = 0 // Gap between images
-    const totalSize = imageSize + gap
-    const columns = Math.floor(canvasSize.width / totalSize)
-
-    users.forEach((user, index) => {
-      const column = index % columns
-      const row = Math.floor(index / columns)
-      const sizeCoeff = user.votes.length;
-      positionedUsers.push({
-        ...user,
-        x: column * totalSize * sizeCoeff,
-        y: row * totalSize * sizeCoeff,
-      })
-    })
-
-    return positionedUsers
-  }
-
-  const handleVote = async (userId: string) => {
-    try {
-      const response = await fetch('/api/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      })
-      if (!response.ok) throw new Error('Voting failed')
-      // Refresh users after voting
-      fetchUsers()
-      // setIsVoteModalOpen(false);
-
-    } catch (error) {
-      console.error('Error voting:', error)
-      setError('Failed to cast vote. Please try again.')
-    }
-  }
-
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users')
@@ -118,11 +61,49 @@ export default function ProfilePictureCanvas() {
     fetchUsers()
   }, [])
 
+  const calculateUserPositions = (): PositionedUser[] => {
+    const positionedUsers: PositionedUser[] = []
+    const imageSize = 100 // Size of each profile picture
+    const gap = 0 // Gap between images
+    const totalSize = imageSize + gap
+    const columns = Math.floor(canvasSize.width / totalSize)
+
+    users.forEach((user, index) => {
+      const column = index % columns
+      const row = Math.floor(index / columns)
+      const sizeCoeff = user.totalVotes + 1; // Add 1 to avoid size 0 for users with no votes
+      positionedUsers.push({
+        ...user,
+        x: column * totalSize * sizeCoeff,
+        y: row * totalSize * sizeCoeff,
+      })
+    })
+
+    return positionedUsers
+  }
+
+  const handleVote = async (votedUserId: number) => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ votedUserId }),
+      })
+      if (!response.ok) throw new Error('Voting failed')
+      fetchUsers()
+      setIsVoteModalOpen(false);
+    } catch (error) {
+      console.error('Error voting:', error)
+      setError('Failed to cast vote. Please try again.')
+    }
+  }
+
   const positionedUsers = calculateUserPositions()
 
-  const voteOptions = (users: UserWithRelations[]) => {
+  const voteOptions = (users: User[]) => {
     if (currentUser === null) return []
-    const candidates = users.filter((user) => user.twitterId !== currentUser.id); // TODO: the check should be against ID instead of pfp
+    const candidates = users.filter((user) => user.twitterId !== currentUser.id);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
@@ -146,8 +127,8 @@ export default function ProfilePictureCanvas() {
               <Image
                 src={user.pfpUrl || "/fallbackAvatar.png"}
                 alt={`${user.username}'s profile picture`}
-                width={100 * (user.votes.length || 1)}
-                height={100 * (user.votes.length || 1)}
+                width={100 * (user.totalVotes + 1)}
+                height={100 * (user.totalVotes + 1)}
                 className="object-cover rounded-md"
                 priority
               />

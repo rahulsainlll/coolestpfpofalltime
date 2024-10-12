@@ -1,25 +1,33 @@
 import Layout from "@/components/layout";
 import ProfileCard from "@/components/ProfileCard";
 import { prisma } from "@/lib/prisma";
-import { UserWithRelations } from "@/types";
 import { User } from "@prisma/client";
 
+type UserWithVotes = User & {
+  totalVotes: number;
+};
+
 export default async function Leaderboard() {
-  let users: UserWithRelations[] = [];
+  let users: UserWithVotes[] = [];
 
   try {
-    users = await prisma.user.findMany({
-      orderBy: {
-        votes: {
-          _count: 'desc',
-        },
-      },
-      take: 10,
+    const rawUsers = await prisma.user.findMany({
       include: {
-        votes: true,
-        profilePicture: true,
+        votesReceived: true,
       },
     });
+
+    users = rawUsers.map(user => ({
+      ...user,
+      totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
+    }));
+
+    // Sort users by total votes
+    users.sort((a, b) => b.totalVotes - a.totalVotes);
+
+    // Take top 10
+    users = users.slice(0, 10);
+
   } catch (error) {
     console.error('Error fetching users:', error);
   }
@@ -28,8 +36,8 @@ export default async function Leaderboard() {
 
   return (
     <Layout>
-      <h1 className="text-3xl my-6 mb-12 text-center">Leaderboard</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <h1 className="my-6 mb-12 text-3xl text-center">Leaderboard</h1>
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {users.map((user, rank) => (
           <ProfileCard key={user.id} user={user} rank={rank + 1} />
         ))}

@@ -26,7 +26,7 @@ export default async function Home() {
     if (!existingUser) {
       console.log("Creating new user in the database");
 
-      const pictureUrl = user.picture || "fallbackAvatar.png"; 
+      const pictureUrl = user.picture || "/fallbackAvatar.png"; 
 
       const newUser = await prisma.user.create({
         data: {
@@ -36,21 +36,12 @@ export default async function Home() {
         },
       });
 
-     
-      await prisma.profilePicture.create({
-        data: {
-          pfpUrl: pictureUrl,
-          userId: newUser.id,
-          voteCount: 0,
-        },
-      });
-
-      console.log("User and profile picture created successfully");
+      console.log("User created successfully");
     } else {
       console.log("User already exists:", existingUser);
     }
   } catch (error) {
-    console.error("Error creating user or profile picture:", error);
+    console.error("Error creating user:", error);
   }
 
   // Fetch all users for the canvas
@@ -58,8 +49,7 @@ export default async function Home() {
   // try {
   //   users = await prisma.user.findMany({
   //     include: {
-  //       votes: true,
-  //       profilePictures: true, // Fetch profile pictures for each user
+  //       votesReceived: true,
   //     },
   //   });
   // } catch (error) {
@@ -68,14 +58,7 @@ export default async function Home() {
 
   return (
     <div>
-      {/* {user.picture && (
-        <Image
-          src={user.picture}
-          alt={`${username}'s profile picture`}
-          width={100}
-          height={100}
-        />
-      )} */}
+      
       <h1>Hey {username}, sup?</h1>
     </div>
   );

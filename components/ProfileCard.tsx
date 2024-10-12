@@ -1,8 +1,11 @@
 import Image from "next/image";
-import { UserWithRelations } from "@/types";
+import { User } from "@prisma/client";
 
-export default function ProfileCard({ user, rank }: { user: UserWithRelations, rank: number }) {
-  const totalVotes = user.votes.length;
+type UserWithVotes = User & {
+  totalVotes: number;
+};
+
+export default function ProfileCard({ user, rank }: { user: UserWithVotes, rank: number }) {
   const base = "bg-gradient-to-r from-violet-100 to-cyan-200 border-4";
   const flair = rank === 1 ? `${base} border-red-300 bg-opacity-100` : // rank 1
     rank === 2 ? `${base} border-blue-300 bg-opacity-50` : // rank 2
@@ -21,15 +24,15 @@ export default function ProfileCard({ user, rank }: { user: UserWithRelations, r
         />
         <Image
           src={`/ribbons/${rank}.png`}
-          className="absolute bottom-3 right-1 bg-white/80 rounded-lg"
-          alt={`${user.username}'s pfp`}
+          className="absolute rounded-lg bottom-3 right-1 bg-white/80"
+          alt={`Rank ${rank} ribbon`}
           width={30}
           height={30}
         />
       </div>
-      <h1 className="text-xl font-bold font-mono text-center mb-2">{user.username}</h1>
+      <h1 className="mb-2 font-mono text-xl font-bold text-center">{user.username}</h1>
       <p className="text-sm">rank: #{rank}</p>
-      <p className="text-sm">votes: {totalVotes}</p>
+      <p className="text-sm">votes: {user.totalVotes}</p>
     </div>
   );
 }

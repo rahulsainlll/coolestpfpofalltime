@@ -11,58 +11,51 @@ export async function POST(req: Request) {
   }
 
   const currentUser = await getUser()
-  const { userId } = await req.json() // Expecting userId of the selected profile picture
-  console.log("Received userId:", userId);
+  const { votedUserId } = await req.json() // Expecting userId of the user being voted for
+  console.log("Received votedUserId:", votedUserId);
 
   try {
-    // Find the user in our database using the Kinde user ID
-    const dbUser = await prisma.user.findUnique({
+    // Find the voter in our database using the Kinde user ID
+    const voter = await prisma.user.findUnique({
       where: { twitterId: currentUser.id },
     })
 
-    if (!dbUser) {
-      return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+    if (!voter) {
+      return NextResponse.json({ error: 'Voter not found in database' }, { status: 404 })
     }
 
-    // Verify the selected user's profile picture exists
-    const selectedUser = await prisma.user.findUnique({
-      where: { id: parseInt(userId) }, // Assuming userId is the ID of the profile picture's owner
-      include: { profilePicture: true }, // Include profile pictures to get the related data
+    // Verify the voted user exists
+    const votedUser = await prisma.user.findUnique({
+      where: { id: parseInt(votedUserId) },
     })
 
-    if (!selectedUser || selectedUser.profilePicture.length === 0) {
-      return NextResponse.json({ error: 'Selected user has no profile picture' }, { status: 404 })
+    if (!votedUser) {
+      return NextResponse.json({ error: 'Voted user not found' }, { status: 404 })
     }
 
-    if (selectedUser.id === dbUser.id) {
-      return NextResponse.json({ error: 'Cannot vote for your own profile picture' }, { status: 400 })
+    if (votedUser.id === voter.id) {
+      return NextResponse.json({ error: 'Cannot vote for yourself' }, { status: 400 })
     }
 
-    // Check if the user has already voted for this profile picture
+    // Check if the user has already voted for this user
     const existingVote = await prisma.vote.findFirst({
       where: {
-        userId: dbUser.id,
-        profilePictureId: selectedUser.profilePicture[0].id, // Assuming we take the first profile picture
+        voterId: voter.id,
+        votedUserId: votedUser.id,
       },
     })
 
     if (existingVote) {
-      return NextResponse.json({ error: 'User has already voted for this profile picture' }, { status: 400 })
+      return NextResponse.json({ error: 'You have already voted for this user' }, { status: 400 })
     }
 
     // Create the vote
     const vote = await prisma.vote.create({
       data: {
-        voterId: dbUser.id,
-        votedUserId: selectedUser.profilePicture[0].id, // Vote for the selected user's profile picture
-        value: 1,
+        voterId: voter.id,
+        votedUserId: votedUser.id,
+        value: 1, // Assuming all votes are upvotes with value 1
       },
-    })
-
-    // Update the vote count on the profile picture
-    await prisma.profilePicture.update({
-      where: { id: selectedUser.profilePicture[0].id },
-      data: { voteCount: { increment: 1 } },
     })
 
     return NextResponse.json(vote)
