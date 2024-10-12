@@ -4,9 +4,9 @@ import { UserWithRelations } from "@/types";
 export default function ProfileCard({ user, rank }: { user: UserWithRelations, rank: number }) {
   const totalVotes = user.votes.length;
   const base = "bg-gradient-to-r from-violet-100 to-cyan-200 border-4";
-  const flair = rank === 1 ? `${base} border-yellow-300 bg-opacity-100` : // rank 1
-    rank === 2 ? `${base} bg-opacity-50` : // rank 2
-    rank === 3 ? `${base} bg-opacity-25` : // rank 3
+  const flair = rank === 1 ? `${base} border-red-300 bg-opacity-100` : // rank 1
+    rank === 2 ? `${base} border-blue-300 bg-opacity-50` : // rank 2
+    rank === 3 ? `${base} border-green-300 bg-opacity-25` : // rank 3
     ""; // default flair
 
   return (
