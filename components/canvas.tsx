@@ -1,29 +1,30 @@
 'use client'
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
-import Image from "next/image";
-import { Heart } from "lucide-react";
+import { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
+import Image from "next/image"
+import { VoteModal } from "./VoteModal"
 
 interface User {
-  id: string;
-  pfpUrl: string;
+  id: string
+  pfpUrl: string
+  username: string
 }
 
 interface PositionedUser extends User {
-  x: number;
-  y: number;
+  x: number
+  y: number
 }
 
 export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [votedUsers, setVotedUsers] = useState<Set<string>>(new Set());
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated } = useKindeAuth();
+  const [users, setUsers] = useState<User[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const { isAuthenticated } = useKindeAuth()
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -31,69 +32,60 @@ export default function ProfilePictureCanvas() {
         setCanvasSize({
           width: canvasRef.current.offsetWidth,
           height: canvasRef.current.offsetHeight,
-        });
+        })
       }
-    };
+    }
 
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
-    return () => window.removeEventListener("resize", updateCanvasSize);
-  }, []);
+    updateCanvasSize()
+    window.addEventListener("resize", updateCanvasSize)
+    return () => window.removeEventListener("resize", updateCanvasSize)
+  }, [])
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users');
+        const response = await fetch('/api/users')
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
-        const data = await response.json();
-        setUsers(data);
-        setError(null);
+        const data = await response.json()
+        setUsers(data)
+        setError(null)
       } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Failed to fetch users. Please try again later.');
+        console.error('Error fetching users:', error)
+        setError('Failed to fetch users. Please try again later.')
       }
-    };
+    }
 
-    fetchUsers();
-  }, []);
+    fetchUsers()
+  }, [])
 
   const calculateUserPositions = (): PositionedUser[] => {
-    const positionedUsers: PositionedUser[] = [];
-    const imageSize = 100; // Size of each profile picture
-    const gap = 10; // Gap between images
-    const totalSize = imageSize + gap;
-    const columns = Math.floor(canvasSize.width / totalSize);
+    const positionedUsers: PositionedUser[] = []
+    const imageSize = 100 // Size of each profile picture
+    const gap = 10 // Gap between images
+    const totalSize = imageSize + gap
+    const columns = Math.floor(canvasSize.width / totalSize)
 
     users.forEach((user, index) => {
-      const column = index % columns;
-      const row = Math.floor(index / columns);
+      const column = index % columns
+      const row = Math.floor(index / columns)
       positionedUsers.push({
         ...user,
         x: column * totalSize,
         y: row * totalSize,
-      });
-    });
+      })
+    })
 
-    return positionedUsers;
-  };
+    return positionedUsers
+  }
 
   const handleVote = (userId: string) => {
-    setVotedUsers((prev) => {
-      const newVotedUsers = new Set(prev);
-      if (newVotedUsers.has(userId)) {
-        newVotedUsers.delete(userId);
-      } else {
-        newVotedUsers.add(userId);
-      }
-      return newVotedUsers;
-    });
-    console.log(`Voted for user: ${userId}`);
+    console.log(`Voted for user: ${userId}`)
     // Here you would typically send a request to your API to record the vote
-  };
+  }
 
-  const positionedUsers = calculateUserPositions();
+  const positionedUsers = calculateUserPositions()
 
   return (
     <div ref={canvasRef} className="fixed inset-0 bg-gray-100 overflow-auto p-4">
@@ -114,22 +106,11 @@ export default function ProfilePictureCanvas() {
             <div className="relative">
               <Image
                 src={user.pfpUrl || "/fallbackAvatar.png"}
-                alt="Profile picture"
+                alt={`${user.username}'s profile picture`}
                 width={100}
                 height={100}
                 className="object-cover rounded-md"
               />
-              {isAuthenticated && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute bottom-2 right-2 bg-white bg-opacity-75 hover:bg-opacity-100"
-                  onClick={() => handleVote(user.id)}
-                  aria-label={votedUsers.has(user.id) ? "Remove vote" : "Vote for this profile picture"}
-                >
-                  <Heart className={votedUsers.has(user.id) ? "fill-red-500 text-red-500" : "text-gray-500"} size={16} />
-                </Button>
-              )}
             </div>
           </div>
         ))
@@ -137,15 +118,25 @@ export default function ProfilePictureCanvas() {
 
       <div className="fixed bottom-4 right-4">
         {isAuthenticated ? (
-          <LogoutLink>
-            <Button>Log out</Button>
-          </LogoutLink>
+          <>
+            <Button onClick={() => setIsVoteModalOpen(true)} className="mr-2">Vote</Button>
+            <LogoutLink>
+              <Button>Log out</Button>
+            </LogoutLink>
+          </>
         ) : (
           <LoginLink>
             <Button>Sign in with X</Button>
           </LoginLink>
         )}
       </div>
+
+      <VoteModal
+        isOpen={isVoteModalOpen}
+        onClose={() => setIsVoteModalOpen(false)}
+        onVote={handleVote}
+        users={users}
+      />
     </div>
-  );
+  )
 }
