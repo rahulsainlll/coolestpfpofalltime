@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
@@ -18,32 +18,19 @@ interface VoteModalProps {
 
 export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
-  const [isVoting, setIsVoting] = useState(false)
 
-  const handleVote = async () => {
+  const handleVote = () => {
     if (selectedUser) {
-      setIsVoting(true)
-      try {
-        const response = await fetch('/api/vote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profilePictureId: selectedUser }),
-        })
-        if (!response.ok) throw new Error('Voting failed')
-        onVote(selectedUser)
-      } catch (error) {
-        console.error('Error voting:', error)
-      } finally {
-        setIsVoting(false)
-        onClose()
-      }
+      onVote(selectedUser);
+      // setSelectedUser(null);
+      onClose();
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader>Vote for the Coolest PFP</DialogHeader>
+      <DialogContent className="sm:max-w-[425px] bg-white" aria-describedby="voting-modal" >
+        <DialogTitle>Vote for the Coolest PFP</DialogTitle>
         <div className="grid grid-cols-2 gap-4">
           {users.slice(0, 4).map((user) => (
             <div
@@ -58,14 +45,14 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
                 alt={`${user.username}'s profile picture`}
                 width={100}
                 height={100}
-                className="w-full h-auto object-cover rounded-md"
+                className="object-cover w-full h-auto rounded-md"
               />
-              <p className="mt-2 text-center text-sm">{user.username}</p>
+              <p className="mt-2 text-sm text-center">{user.username}</p>
             </div>
           ))}
         </div>
-        <Button onClick={handleVote} disabled={!selectedUser || isVoting} className="mt-4 w-full">
-          {isVoting ? 'Voting...' : 'Submit Vote'}
+        <Button onClick={handleVote} disabled={!selectedUser} className="w-full mt-4">
+          Submit Vote
         </Button>
       </DialogContent>
     </Dialog>

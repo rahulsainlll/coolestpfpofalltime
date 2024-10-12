@@ -85,11 +85,13 @@ export default function ProfilePictureCanvas() {
       const response = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profilePictureId: userId }),
+        body: JSON.stringify({ userId }),
       })
       if (!response.ok) throw new Error('Voting failed')
       // Refresh users after voting
       fetchUsers()
+      // setIsVoteModalOpen(false);
+
     } catch (error) {
       console.error('Error voting:', error)
       setError('Failed to cast vote. Please try again.')
@@ -116,7 +118,7 @@ export default function ProfilePictureCanvas() {
   const positionedUsers = calculateUserPositions()
 
   return (
-    <div ref={canvasRef} className="fixed inset-0 bg-gray-100 overflow-auto p-4">
+    <div ref={canvasRef} className="fixed inset-0 p-4 overflow-auto bg-gray-100">
       {error ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-red-500">{error}</p>
@@ -138,6 +140,7 @@ export default function ProfilePictureCanvas() {
                 width={100}
                 height={100}
                 className="object-cover rounded-md"
+                priority
               />
             </div>
           </div>
