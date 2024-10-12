@@ -11,7 +11,7 @@ import { imgResize } from "@/lib/utils"
 
 interface User {
   id: number
-  twitterId: string
+  clerkId: string
   pfpUrl: string | null
   username: string | null
   _count: { votesReceived: number }
@@ -148,7 +148,7 @@ export default function ProfilePictureCanvas() {
 
   const voteOptions = (users: User[]) => {
     if (!user) return []
-    const candidates = users.filter((_user) => _user.id.toString() !== user.id);
+    const candidates = users.filter((_user) => _user.clerkId !== user.id);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 

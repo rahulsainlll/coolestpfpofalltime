@@ -10,8 +10,8 @@ export function imgResize(imageUrl :string) {
 
   params.set('height', '400');
   params.set('width', '400');
-  // params.set('quality', '100');
-  // params.set('fit', 'crop');
+  params.set('quality', '100');
+  params.set('fit', 'crop');
 
   const imageSrc = `${imageUrl}?${params.toString()}`;
 
