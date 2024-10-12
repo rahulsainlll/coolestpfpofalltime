@@ -10,14 +10,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const user = await getUser()
+  const currentUser = await getUser()
   const { userId } = await req.json() // Expecting userId of the selected profile picture
   console.log("Received userId:", userId);
 
   try {
     // Find the user in our database using the Kinde user ID
     const dbUser = await prisma.user.findUnique({
-      where: { twitterId: user.id },
+      where: { twitterId: currentUser.id },
     })
 
     if (!dbUser) {
@@ -53,8 +53,8 @@ export async function POST(req: Request) {
     // Create the vote
     const vote = await prisma.vote.create({
       data: {
-        userId: dbUser.id,
-        profilePictureId: selectedUser.profilePicture[0].id, // Vote for the selected user's profile picture
+        voterId: dbUser.id,
+        votedUserId: selectedUser.profilePicture[0].id, // Vote for the selected user's profile picture
         value: 1,
       },
     })
