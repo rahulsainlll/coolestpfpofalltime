@@ -19,12 +19,13 @@ interface PositionedUser extends User {
 }
 
 export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<User[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
-  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const { isAuthenticated } = useKindeAuth()
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated, getUser } = useKindeAuth();
+  const currentUser = getUser();
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -117,6 +118,12 @@ export default function ProfilePictureCanvas() {
 
   const positionedUsers = calculateUserPositions()
 
+  const voteOptions = (users: User[]) => {
+    if (currentUser === null) return []
+    const candidates = users.filter((user) => user.pfpUrl !== currentUser.picture); // TODO: the check should be against ID instead of pfp
+    return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
+  }
+
   return (
     <div ref={canvasRef} className="fixed inset-0 p-4 overflow-auto bg-gray-100">
       {error ? (
@@ -166,7 +173,7 @@ export default function ProfilePictureCanvas() {
         isOpen={isVoteModalOpen}
         onClose={() => setIsVoteModalOpen(false)}
         onVote={handleVote}
-        users={users}
+        users={voteOptions(users)}
       />
     </div>
   )

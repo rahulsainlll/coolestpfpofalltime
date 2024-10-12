@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate:postgres": "dotenv -e .env.local -- npx prisma migrate deploy"
+    "migrate:postgres": "dotenv -e .env.local -- npx prisma migrate deploy",
+    "studio": "dotenv -e .env.local -- npx prisma studio"
   },
   "dependencies": {
     "@kinde-oss/kinde-auth-nextjs": "^2.3.10",
