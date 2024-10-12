@@ -72,7 +72,7 @@ export default function ProfilePictureCanvas() {
     users.forEach((user, index) => {
       const column = index % columns
       const row = Math.floor(index / columns)
-      const sizeCoeff = user.votes.length + 1;
+      const sizeCoeff = user.votes.length;
       positionedUsers.push({
         ...user,
         x: column * totalSize * sizeCoeff,
@@ -122,7 +122,7 @@ export default function ProfilePictureCanvas() {
 
   const voteOptions = (users: UserWithRelations[]) => {
     if (currentUser === null) return []
-    const candidates = users.filter((user) => user.pfpUrl !== currentUser.picture); // TODO: the check should be against ID instead of pfp
+    const candidates = users.filter((user) => user.twitterId !== currentUser.id); // TODO: the check should be against ID instead of pfp
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
