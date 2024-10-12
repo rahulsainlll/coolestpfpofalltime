@@ -34,6 +34,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Selected user has no profile picture' }, { status: 404 })
     }
 
+    if (selectedUser.id === dbUser.id) {
+      return NextResponse.json({ error: 'Cannot vote for your own profile picture' }, { status: 400 })
+    }
+
     // Check if the user has already voted for this profile picture
     const existingVote = await prisma.vote.findFirst({
       where: {
@@ -41,8 +45,6 @@ export async function POST(req: Request) {
         profilePictureId: selectedUser.profilePicture[0].id, // Assuming we take the first profile picture
       },
     })
-
-    console.log(existingVote)
 
     if (existingVote) {
       return NextResponse.json({ error: 'User has already voted for this profile picture' }, { status: 400 })

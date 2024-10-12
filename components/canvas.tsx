@@ -6,6 +6,7 @@ import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
+import { UserWithRelations } from "@/types/types"
 
 interface User {
   id: string
@@ -13,13 +14,13 @@ interface User {
   username: string
 }
 
-interface PositionedUser extends User {
+interface PositionedUser extends UserWithRelations {
   x: number
   y: number
 }
 
 export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserWithRelations[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -64,17 +65,18 @@ export default function ProfilePictureCanvas() {
   const calculateUserPositions = (): PositionedUser[] => {
     const positionedUsers: PositionedUser[] = []
     const imageSize = 100 // Size of each profile picture
-    const gap = 10 // Gap between images
+    const gap = 0 // Gap between images
     const totalSize = imageSize + gap
     const columns = Math.floor(canvasSize.width / totalSize)
 
     users.forEach((user, index) => {
       const column = index % columns
       const row = Math.floor(index / columns)
+      const sizeCoeff = user.votes.length + 1;
       positionedUsers.push({
         ...user,
-        x: column * totalSize,
-        y: row * totalSize,
+        x: column * totalSize * sizeCoeff,
+        y: row * totalSize * sizeCoeff,
       })
     })
 
@@ -144,8 +146,8 @@ export default function ProfilePictureCanvas() {
               <Image
                 src={user.pfpUrl || "/fallbackAvatar.png"}
                 alt={`${user.username}'s profile picture`}
-                width={100}
-                height={100}
+                width={100 * (user.votes.length || 1)}
+                height={100 * (user.votes.length || 1)}
                 className="object-cover rounded-md"
                 priority
               />
