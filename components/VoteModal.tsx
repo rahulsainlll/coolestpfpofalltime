@@ -8,6 +8,7 @@ interface User {
   twitterId: string
   pfpUrl: string | null
   username: string | null
+  _count: { votesReceived: number }
 }
 
 interface VoteModalProps {
@@ -19,7 +20,7 @@ interface VoteModalProps {
 
 export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
   const [selectedUser, setSelectedUser] = useState<number | null>(null)
-
+  
   const handleVote = () => {
     if (selectedUser !== null) {
       onVote(selectedUser);
@@ -32,7 +33,7 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
       <DialogContent className="sm:max-w-[425px] bg-white" aria-describedby="voting-modal">
         <DialogTitle>Vote for the Coolest PFP</DialogTitle>
         <div className="grid grid-cols-2 gap-4">
-          {users.slice(0, 4).map((user) => (
+          {users.map((user) => (
             <div
               key={user.id}
               className={`p-2 border rounded-lg cursor-pointer ${
@@ -48,6 +49,7 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
                 className="object-cover w-full h-auto rounded-md"
               />
               <p className="mt-2 text-sm text-center">{user.username || 'Anonymous'}</p>
+              <p className="mt-1 text-xs text-center text-gray-500">Votes: {user._count.votesReceived}</p>
             </div>
           ))}
         </div>

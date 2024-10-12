@@ -11,32 +11,31 @@ export async function GET() {
           },
         },
         {
-          id: 'asc', 
+          id: 'asc',
         },
       ],
       take: 10,
       select: {
         id: true,
+        twitterId: true,
         username: true,
         pfpUrl: true,
-        votesReceived: {
-          select: {
-            value: true,
-          },
+        _count: {
+          select: { votesReceived: true }
         },
       },
     })
 
-    // total votes for each user
     const usersWithTotalVotes = users.map(user => ({
       id: user.id,
+      twitterId: user.twitterId,
       username: user.username,
       pfpUrl: user.pfpUrl,
-      totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
+      _count: {
+        votesReceived: user._count.votesReceived
+      },
     }))
 
-    // sort 
-    usersWithTotalVotes.sort((a, b) => b.totalVotes - a.totalVotes)
 
     return NextResponse.json(usersWithTotalVotes)
   } catch (error) {

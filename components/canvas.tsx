@@ -10,9 +10,9 @@ import { VoteModal } from "./VoteModal"
 interface User {
   id: number
   twitterId: string
-  pfpUrl: string
-  username: string
-  totalVotes: number
+  pfpUrl: string | null
+  username: string | null
+  _count: { votesReceived: number }
 }
 
 interface PositionedUser extends User {
@@ -71,7 +71,7 @@ export default function ProfilePictureCanvas() {
     users.forEach((user, index) => {
       const column = index % columns
       const row = Math.floor(index / columns)
-      const sizeCoeff = user.totalVotes + 1; // Add 1 to avoid size 0 for users with no votes
+      const sizeCoeff = user._count.votesReceived + 1; // Add 1 to avoid size 0 for users with no votes
       positionedUsers.push({
         ...user,
         x: column * totalSize * sizeCoeff,
@@ -91,7 +91,13 @@ export default function ProfilePictureCanvas() {
         body: JSON.stringify({ votedUserId }),
       })
       if (!response.ok) throw new Error('Voting failed')
-      fetchUsers()
+      const data = await response.json()
+      // Update the specific user's vote count in the local state
+      setUsers(prevUsers => prevUsers.map(user => 
+        user.id === votedUserId 
+          ? { ...user, _count: { ...user._count, votesReceived: data.updatedVoteCount } }
+          : user
+      ))
       setIsVoteModalOpen(false);
     } catch (error) {
       console.error('Error voting:', error)
@@ -126,9 +132,9 @@ export default function ProfilePictureCanvas() {
             <div className="relative">
               <Image
                 src={user.pfpUrl || "/fallbackAvatar.png"}
-                alt={`${user.username}'s profile picture`}
-                width={100 * (user.totalVotes + 1)}
-                height={100 * (user.totalVotes + 1)}
+                alt={`${user.username || 'User'}'s profile picture`}
+                width={100 * (user._count.votesReceived + 1)}
+                height={100 * (user._count.votesReceived + 1)}
                 className="object-cover rounded-md"
                 priority
               />
