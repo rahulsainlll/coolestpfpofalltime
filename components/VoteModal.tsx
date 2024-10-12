@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { UserWithRelations } from '@/types/types'
 
 interface User {
   id: string
@@ -13,7 +14,7 @@ interface VoteModalProps {
   isOpen: boolean
   onClose: () => void
   onVote: (userId: string) => void
-  users: User[]
+  users: UserWithRelations[]
 }
 
 export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
@@ -36,9 +37,9 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
             <div
               key={user.id}
               className={`p-2 border rounded-lg cursor-pointer ${
-                selectedUser === user.id ? 'border-blue-500' : 'border-gray-200'
+                selectedUser === `${user.id}` ? 'border-blue-500' : 'border-gray-200'
               }`}
-              onClick={() => setSelectedUser(user.id)}
+              onClick={() => setSelectedUser(`${user.id}`)}
             >
               <Image
                 src={user.pfpUrl || "/fallbackAvatar.png"}

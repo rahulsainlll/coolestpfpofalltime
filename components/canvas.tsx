@@ -120,7 +120,7 @@ export default function ProfilePictureCanvas() {
 
   const positionedUsers = calculateUserPositions()
 
-  const voteOptions = (users: User[]) => {
+  const voteOptions = (users: UserWithRelations[]) => {
     if (currentUser === null) return []
     const candidates = users.filter((user) => user.pfpUrl !== currentUser.picture); // TODO: the check should be against ID instead of pfp
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
