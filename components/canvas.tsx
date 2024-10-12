@@ -1,186 +1,151 @@
-// "use client";
+'use client'
 
-// import { useState, useRef, useEffect } from "react";
-// import { Button } from "@/components/ui/button";
-// import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
-// import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
+import Image from "next/image";
+import { Heart } from "lucide-react";
 
+interface User {
+  id: string;
+  pfpUrl: string;
+}
 
-// interface Image {
-//   url: string;
-//   width: number;
-//   height: number;
-// }
+interface PositionedUser extends User {
+  x: number;
+  y: number;
+}
 
-// interface PositionedImage extends Image {
-//   x: number;
-//   y: number;
-// }
+export default function ProfilePictureCanvas() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [votedUsers, setVotedUsers] = useState<Set<string>>(new Set());
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated } = useKindeAuth();
 
-// export default function FullPageCanvas() {
-//   const [images, setImages] = useState<Image[]>([]);
-//   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-//   const canvasRef = useRef<HTMLDivElement>(null);
-//   const { isAuthenticated, user } = useKindeAuth();
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (canvasRef.current) {
+        setCanvasSize({
+          width: canvasRef.current.offsetWidth,
+          height: canvasRef.current.offsetHeight,
+        });
+      }
+    };
 
-//   useEffect(() => {
-//     const updateCanvasSize = () => {
-//       if (canvasRef.current) {
-//         setCanvasSize({
-//           width: canvasRef.current.offsetWidth,
-//           height: canvasRef.current.offsetHeight,
-//         });
-//       }
-//     };
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
+    return () => window.removeEventListener("resize", updateCanvasSize);
+  }, []);
 
-//     updateCanvasSize();
-//     window.addEventListener("resize", updateCanvasSize);
-//     return () => window.removeEventListener("resize", updateCanvasSize);
-//   }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsers(data);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setError('Failed to fetch users. Please try again later.');
+      }
+    };
 
+    fetchUsers();
+  }, []);
 
+  const calculateUserPositions = (): PositionedUser[] => {
+    const positionedUsers: PositionedUser[] = [];
+    const imageSize = 100; // Size of each profile picture
+    const gap = 10; // Gap between images
+    const totalSize = imageSize + gap;
+    const columns = Math.floor(canvasSize.width / totalSize);
 
-//   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (file) {
-//       const reader = new FileReader();
-//       reader.onload = (event) => {
-//         setNewImage({
-//           url: event.target?.result as string,
-//           width: 100,
-//           height: 100,
-//         });
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   };
+    users.forEach((user, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      positionedUsers.push({
+        ...user,
+        x: column * totalSize,
+        y: row * totalSize,
+      });
+    });
 
-//   const handleImageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const { name, value } = e.target;
-//     if (newImage) {
-//       setNewImage((prev) => ({
-//         ...prev!,
-//         [name]: Math.max(10, Math.min(500, parseInt(value) || 0)),
-//       }));
-//     }
-//   };
+    return positionedUsers;
+  };
 
-//   const addImage = () => {
-//     if (newImage) {
-//       const updatedImages = [...images, newImage];
-//       setImages(updatedImages);
-//       setNewImage(null);
-//       setIsDialogOpen(false);
-//     }
-//   };
+  const handleVote = (userId: string) => {
+    setVotedUsers((prev) => {
+      const newVotedUsers = new Set(prev);
+      if (newVotedUsers.has(userId)) {
+        newVotedUsers.delete(userId);
+      } else {
+        newVotedUsers.add(userId);
+      }
+      return newVotedUsers;
+    });
+    console.log(`Voted for user: ${userId}`);
+    // Here you would typically send a request to your API to record the vote
+  };
 
-//   const calculateImagePositions = (): PositionedImage[] => {
-//     const positionedImages: PositionedImage[] = [];
-//     const gaps: { x: number; y: number; width: number; height: number }[] = [
-//       { x: 0, y: 0, width: canvasSize.width, height: Infinity },
-//     ];
+  const positionedUsers = calculateUserPositions();
 
-//     images.forEach((image) => {
-//       let placed = false;
-//       for (let i = 0; i < gaps.length; i++) {
-//         const gap = gaps[i];
-//         if (image.width <= gap.width && image.height <= gap.height) {
-//           // Place the image in this gap
-//           positionedImages.push({ ...image, x: gap.x, y: gap.y });
-//           placed = true;
-
-//           // Update gaps
-//           if (image.width < gap.width) {
-//             gaps.push({
-//               x: gap.x + image.width,
-//               y: gap.y,
-//               width: gap.width - image.width,
-//               height: image.height,
-//             });
-//           }
-//           if (image.height < gap.height) {
-//             gaps.push({
-//               x: gap.x,
-//               y: gap.y + image.height,
-//               width: image.width,
-//               height: gap.height - image.height,
-//             });
-//           }
-//           gaps.splice(i, 1);
-//           break;
-//         }
-//       }
-
-//       if (!placed) {
-//         // If no suitable gap was found, place at the bottom
-//         const maxY = Math.max(
-//           ...positionedImages.map((img) => img.y + img.height),
-//           0
-//         );
-//         positionedImages.push({ ...image, x: 0, y: maxY });
-//         gaps.push({
-//           x: image.width,
-//           y: maxY,
-//           width: canvasSize.width - image.width,
-//           height: Infinity,
-//         });
-//       }
-
-//       // Sort gaps by y-coordinate, then x-coordinate
-//       gaps.sort((a, b) => a.y - b.y || a.x - b.x);
-//     });
-
-//     return positionedImages;
-//   }
-
-//   const positionedImages = calculateImagePositions();
-
-//   return (
-//     <div ref={canvasRef} className="fixed inset-0 bg-gray-100 overflow-auto">
-//       {positionedImages.map((image, index) => (
-//         <div
-//           key={index}
-//           className="absolute"
-//           style={{
-//             left: `${image.x}px`,
-//             top: `${image.y}px`,
-//             width: `${image.width}px`,
-//             height: `${image.height}px`,
-//           }}
-//         >
-//           <img
-//             src={image.url}
-//             alt={`Image ${index}`}
-//             className="w-full h-full object-cover"
-//           />
-//         </div>
-//       ))}
-
-//       <div className="fixed bottom-4 right-4">
-//         {isAuthenticated ? (
-//           <LogoutLink>
-//             <Button>Log out</Button>
-//           </LogoutLink>
-//         ) : (
-//           <LoginLink>
-//             <Button>Sign in with X</Button>
-//           </LoginLink>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-import { RegisterLink, LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
-
-const AuthLinks: React.FC = () => {
   return (
-    <div>
-      <LoginLink>Sign in</LoginLink>
-      <RegisterLink>Sign up</RegisterLink>
-      <LogoutLink>Log out</LogoutLink>
+    <div ref={canvasRef} className="fixed inset-0 bg-gray-100 overflow-auto p-4">
+      {error ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-red-500">{error}</p>
+        </div>
+      ) : (
+        positionedUsers.map((user) => (
+          <div
+            key={user.id}
+            className="absolute"
+            style={{
+              left: `${user.x}px`,
+              top: `${user.y}px`,
+            }}
+          >
+            <div className="relative">
+              <Image
+                src={user.pfpUrl || "/fallbackAvatar.png"}
+                alt="Profile picture"
+                width={100}
+                height={100}
+                className="object-cover rounded-md"
+              />
+              {isAuthenticated && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute bottom-2 right-2 bg-white bg-opacity-75 hover:bg-opacity-100"
+                  onClick={() => handleVote(user.id)}
+                  aria-label={votedUsers.has(user.id) ? "Remove vote" : "Vote for this profile picture"}
+                >
+                  <Heart className={votedUsers.has(user.id) ? "fill-red-500 text-red-500" : "text-gray-500"} size={16} />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+
+      <div className="fixed bottom-4 right-4">
+        {isAuthenticated ? (
+          <LogoutLink>
+            <Button>Log out</Button>
+          </LogoutLink>
+        ) : (
+          <LoginLink>
+            <Button>Sign in with X</Button>
+          </LoginLink>
+        )}
+      </div>
     </div>
   );
-};
-
-export default AuthLinks;
+}
