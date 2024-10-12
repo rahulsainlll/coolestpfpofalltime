@@ -8,6 +8,9 @@ const nextConfig = {
       {
         hostname: "via.placeholder.com", // Add this line
       },
+      {
+        hostname: "img.clerk.com"
+      }
     ],
   },
 };

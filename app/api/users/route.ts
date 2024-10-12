@@ -17,7 +17,7 @@ export async function GET() {
       take: 10,
       select: {
         id: true,
-        twitterId: true,
+        clerkId: true,
         username: true,
         pfpUrl: true,
         _count: {
@@ -28,7 +28,7 @@ export async function GET() {
 
     const usersWithTotalVotes = users.map(user => ({
       id: user.id,
-      twitterId: user.twitterId,
+      clerkId: user.clerkId,
       username: user.username,
       pfpUrl: user.pfpUrl,
       _count: {

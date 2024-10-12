@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
+import { useUser } from '@clerk/nextjs'
+import { prisma } from "@/lib/prisma"
+import { imgResize } from "@/lib/utils"
 
 interface User {
   id: number
@@ -26,8 +28,7 @@ export default function ProfilePictureCanvas() {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, getUser } = useKindeAuth();
-  const currentUser = getUser();
+  const { isLoaded, isSignedIn, user } = useUser()
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -49,6 +50,7 @@ export default function ProfilePictureCanvas() {
       const response = await fetch('/api/users')
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const data = await response.json()
+      console.log("Data fetched:", data)
       setUsers(data)
       setError(null)
     } catch (error) {
@@ -60,6 +62,43 @@ export default function ProfilePictureCanvas() {
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  // Create a new user in the database if they don't already exist
+  useEffect(() => {
+    const checkOrCreateUser = async () => {
+      if (isLoaded && isSignedIn && user) {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { clerkId: user.id },
+          });
+
+          console.log("################################",existingUser);
+      
+          if (!existingUser) {
+            console.log("Creating new user in the database");
+      
+            const pictureUrl = imgResize(user.imageUrl) || "/fallbackAvatar.png"; 
+      
+            const newUser = await prisma.user.create({
+              data: {
+                clerkId: user.id,
+                username: user.username || "Default Username",
+                pfpUrl: pictureUrl,
+              },
+            });
+      
+            console.log("User created successfully");
+          } else {
+            console.log("User already exists:", existingUser);
+          }
+        } catch (error) {
+          console.error("Error creating user:", error);
+        }
+      }
+    };
+
+    checkOrCreateUser();
+  }, [isLoaded, isSignedIn, user]);
 
   const calculateUserPositions = (): PositionedUser[] => {
     const positionedUsers: PositionedUser[] = []
@@ -83,7 +122,7 @@ export default function ProfilePictureCanvas() {
   }
 
   const handleVote = async (votedUserId: number) => {
-    if (!currentUser) return;
+    if (!user || !isSignedIn) return;
     try {
       const response = await fetch('/api/vote', {
         method: 'POST',
@@ -108,8 +147,8 @@ export default function ProfilePictureCanvas() {
   const positionedUsers = calculateUserPositions()
 
   const voteOptions = (users: User[]) => {
-    if (currentUser === null) return []
-    const candidates = users.filter((user) => user.twitterId !== currentUser.id);
+    if (!user) return []
+    const candidates = users.filter((_user) => _user.id.toString() !== user.id);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
@@ -143,19 +182,24 @@ export default function ProfilePictureCanvas() {
         ))
       )}
 
-      <div className="fixed bottom-4 right-4">
-        {isAuthenticated ? (
-          <>
-            <Button onClick={() => setIsVoteModalOpen(true)} className="mr-2">Vote</Button>
-            <LogoutLink>
-              <Button>Log out</Button>
-            </LogoutLink>
-          </>
-        ) : (
-          <LoginLink>
-            <Button>Sign in with X</Button>
-          </LoginLink>
-        )}
+      <div className="fixed bottom-4 right-4 flex items-center justify-center bg-white p-2 px-3 gap-2 rounded-2xl shadow">
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button className="rounded-xl">Sign In To Vote</Button>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn>
+          <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: 'w-10 h-10 rounded-xl border-4 border-gray-400',
+                userButtonBox: 'w-10 h-10 rounded-xl',
+                userButtonTrigger: 'w-10 h-10 rounded-xl',
+              },
+            }}
+          />
+        </SignedIn>
       </div>
 
       <VoteModal

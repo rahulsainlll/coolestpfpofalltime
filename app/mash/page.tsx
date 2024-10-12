@@ -1,36 +1,40 @@
 import Image from "next/image";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "../../lib/prisma";
 import { User as PrismaUser } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
+import { imgResize } from "@/lib/utils";
 
 export default async function Home() {
-  const { isAuthenticated, getUser } = getKindeServerSession();
-  const isUserAuthenticated = await isAuthenticated();
+  const user = await currentUser()
 
-  if (!isUserAuthenticated) {
+  if (!user) {
     redirect("/login");
   }
-
-  const user = await getUser();
-  const username = user.given_name;
+  
+  const username = user.username;
 
   console.log("Authenticated user:", user);
-  console.log("User picture URL:", user.picture);
+  console.log("User picture URL:", user.imageUrl);
 
   try {
     const existingUser = await prisma.user.findUnique({
-      where: { twitterId: user.id },
+      where: { clerkId: user.id },
     });
 
     if (!existingUser) {
       console.log("Creating new user in the database");
 
-      const pictureUrl = user.picture || "/fallbackAvatar.png"; 
+      const pictureUrl = imgResize(user.imageUrl) || "/fallbackAvatar.png"; 
 
-      const newUser = await prisma.user.create({
-        data: {
-          twitterId: user.id,
+      const newUser = await prisma.user.upsert({
+        where: { clerkId: user.id },
+        update: {
+          username: username || "Default Username",
+          pfpUrl: pictureUrl,
+        },
+        create: {
+          clerkId: user.id,
           username: username || "Default Username",
           pfpUrl: pictureUrl,
         },
@@ -44,21 +48,8 @@ export default async function Home() {
     console.error("Error creating user:", error);
   }
 
-  // Fetch all users for the canvas
-  // let users: PrismaUser[] = [];
-  // try {
-  //   users = await prisma.user.findMany({
-  //     include: {
-  //       votesReceived: true,
-  //     },
-  //   });
-  // } catch (error) {
-  //   console.error("Error fetching users:", error);
-  // }
-
   return (
     <div>
-      
       <h1>Hey {username}, sup?</h1>
     </div>
   );

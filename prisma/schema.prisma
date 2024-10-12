@@ -15,7 +15,7 @@ datasource db {
 
 model User {
   id            Int      @id @default(autoincrement())
-  twitterId     String   @unique // X (Twitter) user ID
+  clerkId     String   @unique // X (Twitter) user ID
   username      String?  // Username of the user from X (Twitter)
   pfpUrl        String?  // The URL of their profile picture
   votesGiven Vote[]  @relation("VoterRelation")

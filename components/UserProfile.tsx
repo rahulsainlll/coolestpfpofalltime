@@ -29,14 +29,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUserCreated }) => {
 
       try {
         const existingUser = await prisma.user.findUnique({
-          where: { twitterId: user.id },
+          where: { clerkId: user.id },
         });
 
         if (!existingUser) {
           console.log('Creating new user in the database');
           await prisma.user.create({
             data: {
-              twitterId: user.id,
+              clerkId: user.id,
               username: username || 'Default Username',
               pfpUrl: user.picture,
             },
