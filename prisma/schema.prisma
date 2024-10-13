@@ -18,7 +18,7 @@ model User {
   twitterId     String   @unique // X (Twitter) user ID
   username      String?  // Username of the user from X (Twitter)
   pfpUrl        String?  // The URL of their profile picture
-  votesGiven Vote[]  @relation("VoterRelation")
+  votesGiven    Vote[]  @relation("VoterRelation")
   votesReceived Vote[] @relation("VotedUserRelation")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

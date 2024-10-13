@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
 interface User {
   id: number
-  twitterId: string
+  kindeId: string
   pfpUrl: string | null
   username: string | null
   _count: { votesReceived: number }
@@ -31,7 +31,9 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-white" aria-describedby="voting-modal">
-        <DialogTitle>Vote for the Coolest PFP</DialogTitle>
+        <DialogHeader>
+          <DialogTitle>Vote for the Coolest PFP</DialogTitle>
+        </DialogHeader>
         <div className="grid grid-cols-2 gap-4">
           {users.map((user) => (
             <div

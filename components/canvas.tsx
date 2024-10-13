@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
-import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
+import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 
 interface User {
   id: number
-  twitterId: string
+  kindeId: string
   pfpUrl: string | null
   username: string | null
   _count: { votesReceived: number }
@@ -44,22 +44,45 @@ export default function ProfilePictureCanvas() {
     return () => window.removeEventListener("resize", updateCanvasSize)
   }, [])
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('/api/users')
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      const data = await response.json()
-      setUsers(data)
-      setError(null)
-    } catch (error) {
-      console.error('Error fetching users:', error)
-      setError('Failed to fetch users. Please try again later.')
-    }
-  }
-
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setUsers(data);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setError('Failed to fetch users. Please try again later.');
+      }
+    };
+  
+    const checkOrCreateUser = async () => {
+      if (isAuthenticated && currentUser) {
+        try {
+          const response = await fetch('/api/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          const data = await response.json();
+          if (response.ok) {
+            console.log('User created:', data);
+          } else {
+            console.error('Error creating user:', data.error);
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+        }
+      }
+    };
+  
+    fetchUsers();
+    checkOrCreateUser();
+  }, [isAuthenticated, currentUser]);
 
   const calculateUserPositions = (): PositionedUser[] => {
     const positionedUsers: PositionedUser[] = []
@@ -83,7 +106,7 @@ export default function ProfilePictureCanvas() {
   }
 
   const handleVote = async (votedUserId: number) => {
-    if (!currentUser) return;
+    if (!currentUser || !isAuthenticated) return;
     try {
       const response = await fetch('/api/vote', {
         method: 'POST',
@@ -92,7 +115,6 @@ export default function ProfilePictureCanvas() {
       })
       if (!response.ok) throw new Error('Voting failed')
       const data = await response.json()
-      // Update the specific user's vote count in the local state
       setUsers(prevUsers => prevUsers.map(user => 
         user.id === votedUserId 
           ? { ...user, _count: { ...user._count, votesReceived: data.updatedVoteCount } }
@@ -108,53 +130,55 @@ export default function ProfilePictureCanvas() {
   const positionedUsers = calculateUserPositions()
 
   const voteOptions = (users: User[]) => {
-    if (currentUser === null) return []
-    const candidates = users.filter((user) => user.twitterId !== currentUser.id);
+    if (!currentUser) return []
+    const candidates = users.filter((user) => user.kindeId !== currentUser.id);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
   return (
     <div ref={canvasRef} className="fixed inset-0 p-4 overflow-auto bg-gray-100">
-      {error ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-red-500">{error}</p>
-        </div>
-      ) : (
-        positionedUsers.map((user) => (
-          <div
-            key={user.id}
-            className="absolute"
-            style={{
-              left: `${user.x}px`,
-              top: `${user.y}px`,
-            }}
-          >
-            <div className="relative">
-              <Image
-                src={user.pfpUrl || "/fallbackAvatar.png"}
-                alt={`${user.username || 'User'}'s profile picture`}
-                width={100 * (user._count.votesReceived + 1)}
-                height={100 * (user._count.votesReceived + 1)}
-                className="object-cover rounded-md"
-                priority
-              />
-            </div>
+    {error ? (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-red-500">{error}</p>
+      </div>
+    ) : (
+      positionedUsers.map((user) => (
+        <div
+          key={user.id}
+          className="absolute"
+          style={{
+            left: `${user.x}px`,
+            top: `${user.y}px`,
+          }}
+        >
+          <div className="relative">
+            <Image
+              src={user.pfpUrl || "/fallbackAvatar.png"}
+              alt={`${user.username || 'User'}'s profile picture`}
+              // width={100 * (user._count.votesReceived + 1)}
+              // height={100 * (user._count.votesReceived + 1)}
+              width={100 }
+              height={100 }
+              className="object-cover rounded-md"
+              priority
+            />
           </div>
-        ))
-      )}
+        </div>
+      ))
+    )}
 
-      <div className="fixed bottom-4 right-4">
-        {isAuthenticated ? (
+      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+        {!isAuthenticated ? (
+          <LoginLink>
+            <Button className="rounded-xl">Sign In To Vote</Button>
+          </LoginLink>
+        ) : (
           <>
-            <Button onClick={() => setIsVoteModalOpen(true)} className="mr-2">Vote</Button>
+            <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
             <LogoutLink>
-              <Button>Log out</Button>
+              <Button className="rounded-xl">Log out</Button>
             </LogoutLink>
           </>
-        ) : (
-          <LoginLink>
-            <Button>Sign in with X</Button>
-          </LoginLink>
         )}
       </div>
 

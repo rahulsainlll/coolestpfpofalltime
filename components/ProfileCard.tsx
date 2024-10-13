@@ -6,10 +6,10 @@ type UserWithVotes = User & {
 };
 
 export default function ProfileCard({ user, rank }: { user: UserWithVotes, rank: number }) {
-  const base = "bg-gradient-to-r from-violet-100 to-cyan-200 border-4";
+  const base = "bg-gradient-to-r from-violet-100 to-cyan-200 border-1";
   const flair = rank === 1 ? `${base} border-red-300 bg-opacity-100` : // rank 1
-    rank === 2 ? `${base} border-blue-300 bg-opacity-50` : // rank 2
-    rank === 3 ? `${base} border-green-300 bg-opacity-25` : // rank 3
+    // rank === 2 ? `${base} border-blue-300 bg-opacity-50` : // rank 2
+    // rank === 3 ? `${base} border-green-300 bg-opacity-25` : // rank 3
     ""; // default flair
 
   return (

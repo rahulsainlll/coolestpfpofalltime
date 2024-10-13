@@ -3,20 +3,19 @@ import { prisma } from "@/lib/prisma"
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 
 export async function POST(req: Request) {
-  const { isAuthenticated, getUser } = getKindeServerSession()
-  const isUserAuthenticated = await isAuthenticated()
+  const { getUser } = getKindeServerSession()
+  const user = await getUser()
   
-  if (!isUserAuthenticated) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
-  const currentUser = await getUser()
   const { votedUserId } = await req.json() // Expecting userId of the user being voted for
   
   try {
     // Find the voter in our database using the Kinde user ID
     const voter = await prisma.user.findUnique({
-      where: { twitterId: currentUser.id },
+      where: { twitterId: user.id },
     })
     
     if (!voter) {
