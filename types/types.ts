@@ -1,6 +1,6 @@
-import { User, Vote, ProfilePicture } from "@prisma/client";
+import { User, Vote } from "@prisma/client";
 
 export type UserWithRelations = User & {
-  votes: Vote[];
-  profilePicture: ProfilePicture[];
+  votesReceived: Vote[],
+  votesGiven: Vote[],
 };

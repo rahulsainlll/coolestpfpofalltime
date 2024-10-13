@@ -2,12 +2,9 @@ import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { UserWithRelations } from '@/types'
 
-interface User {
-  id: number
-  kindeId: string
-  pfpUrl: string | null
-  username: string | null
+interface User extends UserWithRelations {
   _count: { votesReceived: number }
 }
 
@@ -35,7 +32,8 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
           <DialogTitle>Vote for the Coolest PFP</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4">
-          {users.map((user) => (
+          {users.length == 0 && <p>No more users available!</p>}
+          {users && users.map((user) => (
             <div
               key={user.id}
               className={`p-2 border rounded-lg cursor-pointer ${

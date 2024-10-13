@@ -20,6 +20,7 @@ export async function GET() {
         twitterId: true,
         username: true,
         pfpUrl: true,
+        votesReceived: true,
         _count: {
           select: { votesReceived: true }
         },
@@ -31,6 +32,7 @@ export async function GET() {
       twitterId: user.twitterId,
       username: user.username,
       pfpUrl: user.pfpUrl,
+      votesReceived: user.votesReceived,
       _count: {
         votesReceived: user._count.votesReceived
       },
