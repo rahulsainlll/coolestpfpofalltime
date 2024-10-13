@@ -8,8 +8,8 @@ type UserWithVotes = User & {
   totalVotes: number;
 };
 
-export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank: number }) {
-  const isPremium = rank <= 0;
+function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number }) {
+  const isPremium = rank <= 3;
   const gradientClass = isPremium
     ? "from-yellow-200 via-sky-200 to-green-200"
     : "from-gray-200 via-gray-100 to-gray-200";
@@ -29,18 +29,31 @@ export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank:
             width={800}
             height={400}
           />
-          <Image
-            src={`/ribbons/${rank}.png`}
-            className="absolute rounded-lg bottom-3 right-1 bg-white/80"
-            alt={`Rank ${rank} ribbon`}
-            width={30}
-            height={30}
-          />
+          
         </div>
         <h1 className="mb-2 font-mono text-[14px] font-bold text-center text-gray-800">{user.username}</h1>
         <p className="text-sm text-gray-600 text-center">Rank: #{rank}</p>
         <p className="text-sm text-green-600 font-mono text-center">Votes: {user.totalVotes}</p>
       </div>
     </motion.div>
+  );
+}
+
+export default function ExtendedLeaderboard({ users }: { users: UserWithVotes[] }) {
+  const extendedUsers = users.slice(3, 50); // Start from rank 4
+
+  return (
+    <div className="mt-12">
+      <h2 className="text-2xl font-bold text-center mb-6">Extended Leaderboard</h2>
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {extendedUsers.map((user, index) => (
+          <ExtendedProfileCard 
+            key={user.id} 
+            user={user} 
+            rank={index + 4} 
+          />
+        ))}
+      </div>
+    </div>
   );
 }
