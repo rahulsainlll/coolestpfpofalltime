@@ -33,27 +33,6 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
   const lastVote = (currentUser && currentUser.id) ? user.votesReceived.find((vote) => vote.voterId === currentUserData?.id) : null;
   const timeSinceLastVote = lastVote ? new Date().getTime() - lastVote.createdAt.getTime() : null;
 
-  const voteForUser = async (twitterId: string) => {
-    if (timeSinceLastVote && timeSinceLastVote < 3600000) {
-      console.error('You have already voted for this user');
-      return;
-    }
-
-    const response = await fetch('/api/vote', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ votedUserId: twitterId }),
-    });
-
-    if (response.ok) {
-      console.log('Voted for user');
-    } else {
-      console.error('Failed to vote for user');
-    }
-  }
-
   return (
   <Layout className="flex flex-col items-center justify-center h-dvh">
       <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
