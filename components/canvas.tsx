@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, use } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
@@ -8,6 +8,7 @@ import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import { UserWithRelations } from "@/types/types"
 import { Vote } from "@prisma/client"
+import Link from "next/link"
 
 interface User extends UserWithRelations {
   _count: { votesReceived: number }
@@ -185,7 +186,7 @@ export default function ProfilePictureCanvas() {
       ))
     )}
 
-      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+<div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
         {!isAuthenticated ? (
           <LoginLink>
             <Button className="rounded-xl">Sign In To Vote</Button>
@@ -193,6 +194,9 @@ export default function ProfilePictureCanvas() {
         ) : (
           <>
             <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
+            <Link href="/leaderboard">
+              <Button className="rounded-xl">Leaderboard</Button>
+            </Link>
             <LogoutLink>
               <Button className="rounded-xl">Log out</Button>
             </LogoutLink>

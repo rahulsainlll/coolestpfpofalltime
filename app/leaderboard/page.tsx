@@ -1,44 +1,62 @@
-import Layout from "@/components/layout";
-import ProfileCard from "@/components/ProfileCard";
-import ExtendedLeaderboard from "@/components/ExtendedLeaderboard";
-import { prisma } from "@/lib/prisma";
-import { User } from "@prisma/client";
+'use client'
+
+import { useState, useEffect } from "react"
+import Layout from "@/components/layout"
+import ProfileCard from "@/components/ProfileCard"
+import ExtendedLeaderboard from "@/components/ExtendedLeaderboard"
+import { User } from "@prisma/client"
+import { Loader2 } from "lucide-react"
 
 type UserWithVotes = User & {
-  totalVotes: number;
-};
-
-async function getUsers(): Promise<UserWithVotes[]> {
-  const rawUsers = await prisma.user.findMany({
-    include: {
-      votesReceived: true,
-    },
-  });
-
-  const users = rawUsers.map(user => ({
-    ...user,
-    totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
-  }));
-
-  // Sort users by total votes
-  return users.sort((a, b) => b.totalVotes - a.totalVotes);
+  totalVotes: number
 }
 
-export default async function Leaderboard() {
-  const users = await getUsers();
-  const top3Users = users.slice(0, 3);
+export default function Leaderboard() {
+  const [users, setUsers] = useState<UserWithVotes[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const response = await fetch('/api/users')
+        if (!response.ok) throw new Error('Failed to fetch users')
+        const rawUsers = await response.json()
+        const processedUsers = rawUsers.map((user: User & { votesReceived: any[] }) => ({
+          ...user,
+          totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
+        }))
+        setUsers(processedUsers.sort((a: { totalVotes: number }, b: { totalVotes: number }) => b.totalVotes - a.totalVotes))
+      } catch (error) {
+        console.error('Error fetching users:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [])
+
+  const top3Users = users.slice(0, 3)
 
   return (
     <Layout>
-      <h1 className="my-6 mb-12 text-3xl text-center font-mono font-bold">Leaderboard</h1>
-      <div className="flex justify-center">
-        <div className="grid grid-cols-3 gap-6">
-          {top3Users.map((user, rank) => (
-            <ProfileCard key={user.id} user={user} rank={rank + 1} />
-          ))}
+      <h1 className="my-6 mb-12 text-2xl text-center font-mono font-bold">coolest pfp</h1>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin" />
         </div>
-      </div>
-      <ExtendedLeaderboard users={users} />
+      ) : (
+        <>
+          <div className="flex justify-center">
+            <div className="grid grid-cols-3 gap-6">
+              {top3Users.map((user, rank) => (
+                <ProfileCard key={user.id} user={user} rank={rank + 1} />
+              ))}
+            </div>
+          </div>
+          <ExtendedLeaderboard users={users} />
+        </>
+      )}
     </Layout>
-  );
+  )
 }

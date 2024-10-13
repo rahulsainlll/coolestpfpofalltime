@@ -119,3 +119,15 @@ body {
   animation: gradient-diagonal-slow 30s ease infinite;
   background-size: 200% 200%;
 }
+
+
+@keyframes gradient-diagonal-slow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-diagonal-slow {
+  animation: gradient-diagonal-slow 6s ease infinite;
+  background-size: 400% 400%;
+}

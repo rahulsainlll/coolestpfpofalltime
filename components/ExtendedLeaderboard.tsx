@@ -16,7 +16,7 @@ function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number
 
   return (
     <motion.div 
-      className={`relative flex flex-col items-center justify-center p-4 border-[1px] rounded-2xl max-w-[200px] mx-auto bg-white overflow-hidden`}
+      className={`relative flex flex-col items-center justify-center p-4 border-[1px] rounded-2xl max-w-[160px] mx-auto bg-white overflow-hidden`}
       whileHover={{ y: -5, transition: { duration: 0.3 } }}
     >
       <div className={`absolute inset-0 bg-gradient-to-bl ${gradientClass} opacity-60 animate-gradient-diagonal-slow`}></div>
@@ -40,11 +40,11 @@ function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number
 }
 
 export default function ExtendedLeaderboard({ users }: { users: UserWithVotes[] }) {
-  const extendedUsers = users.slice(3, 50); // Start from rank 4
+  const extendedUsers = users.slice(3, 10); // Start from rank 4
 
   return (
     <div className="mt-12">
-      <h2 className="text-2xl font-bold text-center mb-6">Extended Leaderboard</h2>
+      <h2 className="text-2xl font-bold text-center mb-6">might overtake</h2>
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {extendedUsers.map((user, index) => (
           <ExtendedProfileCard 

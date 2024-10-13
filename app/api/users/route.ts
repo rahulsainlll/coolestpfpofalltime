@@ -4,17 +4,6 @@ import { prisma } from "@/lib/prisma"
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      orderBy: [
-        {
-          votesReceived: {
-            _count: 'desc',
-          },
-        },
-        {
-          id: 'asc',
-        },
-      ],
-      take: 10,
       select: {
         id: true,
         twitterId: true,
@@ -37,7 +26,6 @@ export async function GET() {
         votesReceived: user._count.votesReceived
       },
     }))
-
 
     return NextResponse.json(usersWithTotalVotes)
   } catch (error) {
