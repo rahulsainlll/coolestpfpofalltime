@@ -18,6 +18,19 @@ interface PositionedUser extends User {
   y: number
 }
 
+const fetchUsers = async (setUsers: ((arg0: any) => void), setError: ((arg0: string | null) => void)) => {
+  try {
+    const response = await fetch('/api/users');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    setUsers(data);
+    setError(null);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    setError('Failed to fetch users. Please try again later.');
+  }
+};
+
 export default function ProfilePictureCanvas() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUserData, setCurrentUserData] = useState<User | null>(null);
@@ -44,19 +57,6 @@ export default function ProfilePictureCanvas() {
   }, [])
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/users');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        setUsers(data);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Failed to fetch users. Please try again later.');
-      }
-    };
-  
     const checkOrCreateUser = async () => {
       if (isAuthenticated && currentUser) {
         try {
@@ -80,7 +80,7 @@ export default function ProfilePictureCanvas() {
       }
     };
   
-    fetchUsers();
+    fetchUsers(setUsers, setError);
     checkOrCreateUser();
   }, [isAuthenticated, currentUser]);
 
@@ -108,6 +108,7 @@ export default function ProfilePictureCanvas() {
   const handleVote = async (votedUserId: number) => {
     if (!currentUser || !isAuthenticated) return;
     try {
+      // CAST VOTE API CALL
       const response = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,8 +121,8 @@ export default function ProfilePictureCanvas() {
           ? { ...user, _count: { ...user._count, votesReceived: data.updatedVoteCount } }
           : user
       ))
-      voteOptions(users);
-      // setIsVoteModalOpen(false);
+      fetchUsers(setUsers, setError)
+      setIsVoteModalOpen(false);
     } catch (error) {
       console.error('Error voting:', error)
       setError('Failed to cast vote. Please try again.')
@@ -131,16 +132,24 @@ export default function ProfilePictureCanvas() {
 
   const positionedUsers = calculateUserPositions()
 
+  const closeAndUpdate = () => {
+    fetchUsers(setUsers, setError)
+    setIsVoteModalOpen(false)
+  }
+
   const voteOptions = (users: User[]) => {
+    console.log(users);
     if (!currentUser) return []
     const candidates = users.filter(
       (user) =>
         user.twitterId !== currentUser.id 
         && user.pfpUrl !== currentUser.picture // fallback check
-        // check if currentUser has already voted for this user
-        && !user.votesReceived.some((vote: Vote) => vote.voterId === currentUserData?.id)
+        // check if currentUser has already voted for this user and if so check if it has been atleast 1 hour
+        && !user.votesReceived.find((vote: Vote) => 
+          vote.voterId === currentUserData?.id 
+          && new Date().getTime() - new Date(vote.createdAt).getTime() < 3600000
+        )
     );
-    console.log(currentUserData, candidates);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
@@ -193,7 +202,7 @@ export default function ProfilePictureCanvas() {
 
       <VoteModal
         isOpen={isVoteModalOpen}
-        onClose={() => setIsVoteModalOpen(false)}
+        onClose={closeAndUpdate}
         onVote={handleVote}
         users={voteOptions(users)}
       />

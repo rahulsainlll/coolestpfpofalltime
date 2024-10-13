@@ -28,7 +28,8 @@
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "tailwindcss-hero-patterns": "^0.1.2"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",

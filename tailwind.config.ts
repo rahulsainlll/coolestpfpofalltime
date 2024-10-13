@@ -1,5 +1,36 @@
 import type { Config } from "tailwindcss";
 
+const heropatterns = require("tailwindcss-hero-patterns/src/patterns");
+
+const patterns = {
+	architect: heropatterns.architect,
+	jigsaw: heropatterns.jigsaw,
+	topography: heropatterns.topography,
+	cutout: heropatterns.cutout,
+	hideout: heropatterns.hideout,
+	yyy: heropatterns.yyy,
+	squares: heropatterns.squares,
+	fallingtriangles: heropatterns.fallingtriangles,
+	hexagons: heropatterns.hexagons,
+	temple: heropatterns.temple,
+	deathstar: heropatterns.deathstar,
+	fourpointstars: heropatterns.fourpointstars,
+	randomshapes: heropatterns.randomshapes,
+	anchorsaway: heropatterns.anchorsaway,
+	fancyrectangles: heropatterns.fancyrectangles,
+	brickwall: heropatterns.brickwall,
+	overlappingcircles: heropatterns.overlappingcircles,
+	plus: heropatterns.plus,
+	wiggle: heropatterns.wiggle,
+	bubbles: heropatterns.bubbles,
+	diagonalstripes: heropatterns.diagonalstripes,
+	aztec: heropatterns.aztec,
+	tictactoe: heropatterns.tictactoe,
+	endlessclouds: heropatterns.endlessclouds,
+	floortile: heropatterns.floortile,
+	parkayfloor: heropatterns.parkayfloor,
+}
+
 const config: Config = {
     darkMode: ["class"],
     content: [
@@ -7,7 +38,15 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+	safelist: [
+		{ pattern: /bg-/ },
+		{ pattern: /heropattern-[a-z-]+-white(?:\/10)?/ },
+	],
   theme: {
+		heroPatterns: patterns,
+		heroPatternsShades: [],
+    heroPatternsColors: ["white"],
+    heroPatternsOpacities: ['10'],
   	extend: {
   		colors: {
   			background: 'hsl(var(--background))',
@@ -61,6 +100,7 @@ const config: Config = {
   plugins: [
 		require("tailwindcss-animate"),
 		require('@tailwindcss/typography'),
+		require('tailwindcss-hero-patterns')
 	],
 };
 export default config;

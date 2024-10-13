@@ -42,8 +42,9 @@ export async function POST(req: Request) {
         votedUserId: votedUser.id,
       },
     })
-    
-    if (existingVote) {
+
+    // check if existing vote exists and if it is atleast 1 hour old to allow revoting
+    if (existingVote && new Date().getTime() - existingVote.createdAt.getTime() < 3600000) {
       return NextResponse.json({ error: 'You have already voted for this user' }, { status: 400 })
     }
     
