@@ -1,17 +1,15 @@
 'use client'
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
 import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
+import { UserWithRelations } from "@/types/types"
+import { Vote } from "@prisma/client"
 
-interface User {
-  id: number
-  kindeId: string
-  pfpUrl: string | null
-  username: string | null
+interface User extends UserWithRelations {
   _count: { votesReceived: number }
 }
 
@@ -22,6 +20,7 @@ interface PositionedUser extends User {
 
 export default function ProfilePictureCanvas() {
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUserData, setCurrentUserData] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -70,7 +69,8 @@ export default function ProfilePictureCanvas() {
   
           const data = await response.json();
           if (response.ok) {
-            console.log('User created:', data);
+            console.log(data.message);
+            setCurrentUserData(data.currUser);
           } else {
             console.error('Error creating user:', data.error);
           }
@@ -94,11 +94,11 @@ export default function ProfilePictureCanvas() {
     users.forEach((user, index) => {
       const column = index % columns
       const row = Math.floor(index / columns)
-      const sizeCoeff = user._count.votesReceived + 1; // Add 1 to avoid size 0 for users with no votes
+      // const sizeCoeff = user._count.votesReceived + 1; // Add 1 to avoid size 0 for users with no votes
       positionedUsers.push({
         ...user,
-        x: column * totalSize * sizeCoeff,
-        y: row * totalSize * sizeCoeff,
+        x: column * totalSize,
+        y: row * totalSize,
       })
     })
 
@@ -120,18 +120,27 @@ export default function ProfilePictureCanvas() {
           ? { ...user, _count: { ...user._count, votesReceived: data.updatedVoteCount } }
           : user
       ))
-      setIsVoteModalOpen(false);
+      voteOptions(users);
+      // setIsVoteModalOpen(false);
     } catch (error) {
       console.error('Error voting:', error)
       setError('Failed to cast vote. Please try again.')
     }
+
   }
 
   const positionedUsers = calculateUserPositions()
 
   const voteOptions = (users: User[]) => {
     if (!currentUser) return []
-    const candidates = users.filter((user) => user.kindeId !== currentUser.id);
+    const candidates = users.filter(
+      (user) =>
+        user.twitterId !== currentUser.id 
+        && user.pfpUrl !== currentUser.picture // fallback check
+        // check if currentUser has already voted for this user
+        && !user.votesReceived.some((vote: Vote) => vote.voterId === currentUserData?.id)
+    );
+    console.log(currentUserData, candidates);
     return candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
   }
 
