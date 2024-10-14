@@ -1,6 +1,7 @@
 import FullPageCanvas from "@/components/canvas";
 import { UserWithRelations } from "@/types/types";
 
+
 const fetchUsers = async () => {
   try {
     const response = await fetch('/api/users');
