@@ -35,7 +35,6 @@ const fetchUsers = async (): Promise<UserWithRelations[]> => {
     return []
   }
   const users = await response.json()
-  console.log(users)
   return users
 }
 

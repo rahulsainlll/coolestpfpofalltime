@@ -9,10 +9,12 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import { UserWithRelations } from "@/types/types"
 import Link from "next/link"
 import Loader from "./Loader"
-import { LucideListOrdered, LucideLogIn, LucideLogOut, LucideStar } from "lucide-react"
+import { LucideListOrdered, LucideLogIn, LucideLogOut, LucideStar, LucideStars } from "lucide-react"
 import { debounce } from '@/utils/debounce'
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
+import BrandLogo from "./brand-logo"
+import Nav from "./nav"
 
 const fetchUsers = async (): Promise<String[]> => {
   const response = await fetch('/api/images', { cache: 'no-store' })
@@ -84,8 +86,8 @@ export default function ProfilePictureCanvas() {
   if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-gray-100">
-      <AutoSizer>
+    <main className="fixed inset-0 overflow-hidden bg-gray-100 pt-16 md:pt-0">
+      <AutoSizer className="">
         {({ height, width }) => {
           const columnCount = Math.floor(width / CELL_SIZE)
           const rowCount = Math.ceil(users.length / columnCount)
@@ -107,7 +109,9 @@ export default function ProfilePictureCanvas() {
         }}
       </AutoSizer>
 
-      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+      <BrandLogo />
+
+      <Nav>
         {!isAuthenticated ? (
           <LoginLink>
             <Button className="rounded-xl">
@@ -129,13 +133,13 @@ export default function ProfilePictureCanvas() {
             </Link>
             <LogoutLink>
               <Button className="rounded-xl">
-                <LucideLogOut size={14} className="mr-2" />
-                Log out
+                <LucideLogOut size={14} className="sm:mr-2" />
+                <span className="hidden sm:block">Log out</span>
               </Button>
             </LogoutLink>
           </>
         )}
-      </div>
+      </Nav>
 
       <VoteModal
         isOpen={isVoteModalOpen}

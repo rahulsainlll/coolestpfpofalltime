@@ -10,17 +10,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { limit, orderByTotalVotes } = await req.json();
+  const { limit, leaderboard } = await req.json();
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
   try {
     const users = await prisma.user.findMany({
       where: {
-        twitterId: {
+        twitterId: leaderboard ? undefined : {
           not: user.id,
         },
-        votesReceived: orderByTotalVotes ? undefined : 
+        votesReceived: leaderboard ? undefined : 
         {
           none: {
             createdAt: { gt: oneHourAgo },
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         votesReceived: true,
       },
       take: limit || 4,
-      orderBy: orderByTotalVotes ? {
+      orderBy: leaderboard ? {
         votesReceived: {
           _count: 'desc',
         },
