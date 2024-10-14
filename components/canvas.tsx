@@ -9,6 +9,7 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import { UserWithRelations } from "@/types/types"
 import { Vote } from "@prisma/client"
 import Link from "next/link"
+import Loader from "./Loader"
 
 interface PositionedUserWithRelations extends UserWithRelations {
   x: number
@@ -28,12 +29,17 @@ const fetchUsers = async (setUsers: ((arg0: any) => void), setError: ((arg0: str
   }
 };
 
+
+
+
+
 export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: UserWithRelations[] }) {
   const [users, setUsers] = useState<UserWithRelations[]>(fetchedUsers);
   const [currentUserData, setCurrentUserData] = useState<UserWithRelations | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, getUser } = useKindeAuth();
   const currentUser = getUser();
@@ -52,6 +58,8 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
     window.addEventListener("resize", updateCanvasSize)
     return () => window.removeEventListener("resize", updateCanvasSize)
   }, [])
+
+  
 
   useEffect(() => {
     const checkOrCreateUser = async () => {
@@ -77,8 +85,14 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
       }
     };
   
-    fetchUsers(setUsers, setError);
-    checkOrCreateUser();
+    const loadData = async () => {
+      setIsLoading(true); 
+      await fetchUsers(setUsers, setError);
+      await checkOrCreateUser(); 
+      setIsLoading(false); 
+    };
+
+    loadData();
   }, [isAuthenticated, currentUser]);
 
   const calculateUserPositions = (): PositionedUserWithRelations[] => {
@@ -91,7 +105,6 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
     users.forEach((user, index) => {
       const column = index % columns
       const row = Math.floor(index / columns)
-      // const sizeCoeff = user._count.votesReceived + 1; // Add 1 to avoid size 0 for users with no votes
       positionedUsers.push({
         ...user,
         x: column * totalSize,
@@ -105,21 +118,18 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
   const handleVote = async (votedUserId: number) => {
     if (!currentUser || !isAuthenticated) return;
     try {
-      // CAST VOTE API CALL
       const response = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ votedUserId }),
       })
       if (!response.ok) throw new Error('Voting failed')
-      // const data = await response.json()
       fetchUsers(setUsers, setError)
       setIsVoteModalOpen(false);
     } catch (error) {
       console.error('Error voting:', error)
       setError('Failed to cast vote. Please try again.')
     }
-
   }
 
   const positionedUsers = calculateUserPositions()
@@ -130,13 +140,11 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
   }
 
   const voteOptions = (users: UserWithRelations[]) => {
-    console.log(users);
     if (!currentUser) return []
     const candidates = users.filter(
       (user) =>
         user.twitterId !== currentUser.id 
-        && user.pfpUrl !== currentUser.picture // fallback check
-        // check if currentUserWithRelations has already voted for this user and if so check if it has been atleast 1 hour
+        && user.pfpUrl !== currentUser.picture
         && !user.votesReceived.find((vote: Vote) => 
           vote.voterId === currentUserData?.id 
           && new Date().getTime() - new Date(vote.createdAt).getTime() < 3600000
@@ -147,60 +155,62 @@ export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: U
 
   return (
     <div ref={canvasRef} className="fixed inset-0 p-4 overflow-auto bg-gray-100">
-    {error ? (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-red-500">{error}</p>
-      </div>
-    ) : (
-      positionedUsers.map((user) => (
-        <div
-          key={user.id}
-          className="absolute"
-          style={{
-            left: `${user.x}px`,
-            top: `${user.y}px`,
-          }}
-        >
-          <div className="relative">
-            <Image
-              src={user.pfpUrl || "/fallbackAvatar.png"}
-              alt={`${user.username || 'User'}'s profile picture`}
-              // width={100 * (user._count.votesReceived + 1)}
-              // height={100 * (user._count.votesReceived + 1)}
-              width={100 }
-              height={100 }
-              className="object-cover rounded-md"
-              priority
-            />
-          </div>
+      {isLoading ? (
+        <Loader/>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-red-500">{error}</p>
         </div>
-      ))
-    )}
+      ) : (
+        <>
+          {positionedUsers.map((user) => (
+            <div
+              key={user.id}
+              className="absolute"
+              style={{
+                left: `${user.x}px`,
+                top: `${user.y}px`,
+              }}
+            >
+              <div className="relative">
+                <Image
+                  src={user.pfpUrl || "/fallbackAvatar.png"}
+                  alt={`${user.username || 'User'}'s profile picture`}
+                  width={100}
+                  height={100}
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
+          ))}
 
-<div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
-        {!isAuthenticated ? (
-          <LoginLink>
-            <Button className="rounded-xl">Sign In To Vote</Button>
-          </LoginLink>
-        ) : (
-          <>
-            <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
-            <Link href="/leaderboard">
-              <Button className="rounded-xl">Leaderboard</Button>
-            </Link>
-            <LogoutLink>
-              <Button className="rounded-xl">Log out</Button>
-            </LogoutLink>
-          </>
-        )}
-      </div>
+          <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+            {!isAuthenticated ? (
+              <LoginLink>
+                <Button className="rounded-xl">Sign In To Vote</Button>
+              </LoginLink>
+            ) : (
+              <>
+                <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
+                <Link href="/leaderboard">
+                  <Button className="rounded-xl">Leaderboard</Button>
+                </Link>
+                <LogoutLink>
+                  <Button className="rounded-xl">Log out</Button>
+                </LogoutLink>
+              </>
+            )}
+          </div>
 
-      <VoteModal
-        isOpen={isVoteModalOpen}
-        onClose={closeAndUpdate}
-        onVote={handleVote}
-        users={voteOptions(users)}
-      />
+          <VoteModal
+            isOpen={isVoteModalOpen}
+            onClose={closeAndUpdate}
+            onVote={handleVote}
+            users={voteOptions(users)}
+          />
+        </>
+      )}
     </div>
   )
 }
