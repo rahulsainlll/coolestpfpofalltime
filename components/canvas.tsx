@@ -10,11 +10,7 @@ import { UserWithRelations } from "@/types/types"
 import { Vote } from "@prisma/client"
 import Link from "next/link"
 
-interface User extends UserWithRelations {
-  _count: { votesReceived: number }
-}
-
-interface PositionedUser extends User {
+interface PositionedUserWithRelations extends UserWithRelations {
   x: number
   y: number
 }
@@ -32,9 +28,9 @@ const fetchUsers = async (setUsers: ((arg0: any) => void), setError: ((arg0: str
   }
 };
 
-export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUserData, setCurrentUserData] = useState<User | null>(null);
+export default function ProfilePictureCanvas({ fetchedUsers }: { fetchedUsers: UserWithRelations[] }) {
+  const [users, setUsers] = useState<UserWithRelations[]>(fetchedUsers);
+  const [currentUserData, setCurrentUserData] = useState<UserWithRelations | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
@@ -85,8 +81,8 @@ export default function ProfilePictureCanvas() {
     checkOrCreateUser();
   }, [isAuthenticated, currentUser]);
 
-  const calculateUserPositions = (): PositionedUser[] => {
-    const positionedUsers: PositionedUser[] = []
+  const calculateUserPositions = (): PositionedUserWithRelations[] => {
+    const positionedUsers: PositionedUserWithRelations[] = []
     const imageSize = 100 // Size of each profile picture
     const gap = 0 // Gap between images
     const totalSize = imageSize + gap
@@ -116,12 +112,7 @@ export default function ProfilePictureCanvas() {
         body: JSON.stringify({ votedUserId }),
       })
       if (!response.ok) throw new Error('Voting failed')
-      const data = await response.json()
-      setUsers(prevUsers => prevUsers.map(user => 
-        user.id === votedUserId 
-          ? { ...user, _count: { ...user._count, votesReceived: data.updatedVoteCount } }
-          : user
-      ))
+      // const data = await response.json()
       fetchUsers(setUsers, setError)
       setIsVoteModalOpen(false);
     } catch (error) {
@@ -138,14 +129,14 @@ export default function ProfilePictureCanvas() {
     setIsVoteModalOpen(false)
   }
 
-  const voteOptions = (users: User[]) => {
+  const voteOptions = (users: UserWithRelations[]) => {
     console.log(users);
     if (!currentUser) return []
     const candidates = users.filter(
       (user) =>
         user.twitterId !== currentUser.id 
         && user.pfpUrl !== currentUser.picture // fallback check
-        // check if currentUser has already voted for this user and if so check if it has been atleast 1 hour
+        // check if currentUserWithRelations has already voted for this user and if so check if it has been atleast 1 hour
         && !user.votesReceived.find((vote: Vote) => 
           vote.voterId === currentUserData?.id 
           && new Date().getTime() - new Date(vote.createdAt).getTime() < 3600000
