@@ -17,6 +17,9 @@ export default function VoteButton({username, id}: {username: string, id: number
     } else {
       console.error('Failed to vote for user');
     }
+
+    // Refresh the page
+    window.location.reload();
   }
 
   return (
