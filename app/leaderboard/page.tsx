@@ -8,7 +8,6 @@ import { User } from "@prisma/client"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs"
 
 type UserWithVotes = User & {
   totalVotes: number
