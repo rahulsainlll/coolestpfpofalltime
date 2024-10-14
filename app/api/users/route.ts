@@ -10,9 +10,6 @@ export async function GET() {
         username: true,
         pfpUrl: true,
         votesReceived: true,
-        _count: {
-          select: { votesReceived: true }
-        },
       },
     })
 
@@ -22,9 +19,6 @@ export async function GET() {
       username: user.username,
       pfpUrl: user.pfpUrl,
       votesReceived: user.votesReceived,
-      _count: {
-        votesReceived: user._count.votesReceived
-      },
     }))
 
     return NextResponse.json(usersWithTotalVotes)

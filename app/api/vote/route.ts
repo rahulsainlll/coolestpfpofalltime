@@ -60,15 +60,9 @@ export async function POST(req: Request) {
     // Fetch updated vote count for the voted user
     const updatedVotedUser = await prisma.user.findUnique({
       where: { id: votedUser.id },
-      select: {
-        _count: { select: { votesReceived: true } }
-      }
     })
     
-    return NextResponse.json({
-      vote,
-      updatedVoteCount: updatedVotedUser?._count.votesReceived
-    })
+    return NextResponse.json({ vote })
   } catch (error) {
     console.error('Error casting vote:', error)
     return NextResponse.json({ error: 'Error casting vote' }, { status: 500 })

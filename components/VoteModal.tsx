@@ -8,15 +8,11 @@ import { UserWithRelations } from '@/types'
 import { motion } from "framer-motion"
 import { Loader2 } from "lucide-react"
 
-interface User extends UserWithRelations {
-  _count: { votesReceived: number }
-}
-
 interface VoteModalProps {
   isOpen: boolean
   onClose: () => void
   onVote: (userId: number) => Promise<void>
-  users: User[]
+  users: UserWithRelations[]
 }
 
 export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
@@ -69,7 +65,7 @@ export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
                     {user.username || 'Anonymous'}
                   </h2>
                   <p className="text-xs text-center text-green-600">
-                    Votes: {user._count.votesReceived}
+                    Votes: {user.votesReceived.length}
                   </p>
                 </div>
               </motion.div>
