@@ -8,6 +8,8 @@ import { Button } from "./ui/button";
 import ProfileShareButton from "./profile-share-button";
 import Link from "next/link";
 import { LucideBoxSelect, LucideListOrdered } from "lucide-react";
+import Nav from "./nav";
+import BrandLogo from "./brand-logo";
 
 export default async function UserPage({ twitterId }: { twitterId: string }) {
   const { isAuthenticated, getUser } = getKindeServerSession();
@@ -47,9 +49,12 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
     }
   }
 
+  const bgClasses = colorHash(user.pfpUrl || "coolestpfpofalltime");
+
   return (
-  <Layout className="flex flex-col items-center justify-center h-dvh">
-      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+    <Layout className="flex flex-col items-center justify-center h-dvh">
+      <BrandLogo />
+      <Nav>
         <Button asChild className="rounded-xl mt-4 font-mono">
           <Link href="/">
             <LucideBoxSelect size={14} className="mr-2" />
@@ -62,15 +67,15 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
             Leaderboard
           </Link>
         </Button>
-      </div>
+      </Nav>
 
       <div className="relative flex flex-col items-center justify-center bg-gray-100 p-8 rounded-2xl max-w-lg w-full overflow-hidden cursor-default shadow">
-        <div className={`h-40 w-full absolute top-0 ${colorHash(user.pfpUrl || "coolestpfpofalltime")}`} />
-        <div className="relative size-48 overflow-hidden object-contain rounded-3xl border-8 border-gray-100 bg-gray-100">
-          <Image className="border-8 border-gray-50 rounded-3xl" src={user.pfpUrl || "/fallback.jpg"} fill alt={`${user.username}'s PFP`} />
+        <div className={`h-40 w-full absolute top-0 ${bgClasses}`} />
+        <div className="relative size-48 overflow-hidden object-contain rounded-[2rem] border-8 p-8 border-gray-100 bg-white/50 shadow mb-2">
+          <Image className="border-8 border-transparent rounded-3xl" src={user.pfpUrl || "/fallback.jpg"} fill alt={`${user.username}'s PFP`} />
         </div>
         <h1 className="font-mono text-xl font-bold text-center mb-2">{user.username}</h1>
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-5">
           <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Voted For: {user.votesGiven.length} Users</p>
           <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Votes By: {user.votesReceived.length} Users</p>
         </div>

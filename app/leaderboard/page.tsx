@@ -8,6 +8,8 @@ import { User } from "@prisma/client"
 import { Loader2, LucideAppWindowMac, LucideBoxSelect, LucideUser } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import BrandLogo from "@/components/brand-logo"
+import Nav from "@/components/nav"
 
 type UserWithVotes = User & {
   totalVotes: number
@@ -23,7 +25,7 @@ export default function Leaderboard() {
         const response = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 30, orderByTotalVotes: true }),
+          body: JSON.stringify({ limit: 30, leaderboard: true }),
         })
         if (!response.ok) throw new Error('Failed to fetch users')
         const rawUsers = await response.json()
@@ -64,7 +66,9 @@ export default function Leaderboard() {
         </>
       )}
 
-      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+      <BrandLogo />
+
+      <Nav>
         <Button asChild className="rounded-xl">
           <Link href="/">
             <LucideBoxSelect size={14} className="mr-2" />
@@ -77,7 +81,7 @@ export default function Leaderboard() {
             My Profile
           </Link>
         </Button>
-      </div>
+      </Nav>
     </Layout>
   )
 }
