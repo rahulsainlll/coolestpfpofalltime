@@ -16,6 +16,7 @@ export default function Loader() {
           width={200}
           height={200}
         />
+        <h2 className="text-lg font-semibold text-gray-800 font-mono">db-kun is working hard for you :3</h2>
       </div>
     </div>
   )
