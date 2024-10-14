@@ -11,6 +11,8 @@ import Link from "next/link"
 import Loader from "./Loader"
 import { LucideListOrdered, LucideLogIn, LucideLogOut, LucideStar } from "lucide-react"
 import { debounce } from '@/utils/debounce'
+import { FixedSizeGrid as Grid } from 'react-window'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 const fetchUsers = async (): Promise<UserWithRelations[]> => {
   const response = await fetch('/api/users', { cache: 'no-store' })
@@ -25,32 +27,36 @@ const checkOrCreateUser = async (): Promise<UserWithRelations> => {
   return data.currUser
 }
 
+const CELL_SIZE = 70
+
+const Cell = ({ columnIndex, rowIndex, style, data }: any) => {
+  const index = rowIndex * data.columnCount + columnIndex
+  const user = data.users[index]
+
+  if (!user) return null
+
+  return (
+    <div style={style}>
+      <Image
+        src={user.pfpUrl || "/fallbackAvatar.png"}
+        alt={`${user.username || 'User'}'s profile picture`}
+        width={CELL_SIZE}
+        height={CELL_SIZE}
+        className="object-cover"
+        priority={index < 20} // Prioritize loading for the first 20 images
+      />
+    </div>
+  )
+}
+
 export default function ProfilePictureCanvas() {
   const [users, setUsers] = useState<UserWithRelations[]>([])
   const [currentUserData, setCurrentUserData] = useState<UserWithRelations | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const canvasRef = useRef<HTMLDivElement>(null)
   const { isAuthenticated, getUser } = useKindeAuth()
   const currentUser = getUser()
-
-  const updateCanvasSize = useCallback(() => {
-    if (canvasRef.current) {
-      setCanvasSize({
-        width: canvasRef.current.offsetWidth,
-        height: canvasRef.current.offsetHeight,
-      })
-    }
-  }, [])
-
-  useEffect(() => {
-    updateCanvasSize()
-    const debouncedResize = debounce(updateCanvasSize, 250)
-    window.addEventListener("resize", debouncedResize)
-    return () => window.removeEventListener("resize", debouncedResize)
-  }, [updateCanvasSize])
 
   useEffect(() => {
     const loadData = async () => {
@@ -92,24 +98,31 @@ export default function ProfilePictureCanvas() {
   }, [currentUser, isAuthenticated])
 
   if (isLoading) return <Loader />
-  if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500">{error}</p></div>
+  if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
 
   return (
-    <div ref={canvasRef} className="fixed inset-0 overflow-auto bg-gray-100">
-      <div className="flex flex-wrap">
-        {users.map((user) => (
-          <div key={user.id} className="w-[100px] h-[100px]">
-            <Image
-              src={user.pfpUrl || "/fallbackAvatar.png"}
-              alt={`${user.username || 'User'}'s profile picture`}
-              width={100}
-              height={100}
-              className="object-cover"
-              priority
-            />
-          </div>
-        ))}
-      </div>
+    <main className="fixed inset-0 overflow-hidden bg-gray-100">
+      <AutoSizer>
+        {({ height, width }) => {
+          const columnCount = Math.floor(width / CELL_SIZE)
+          const rowCount = Math.ceil(users.length / columnCount)
+
+          return (
+            <Grid
+              className="List"
+              columnCount={columnCount}
+              columnWidth={CELL_SIZE}
+              height={height}
+              rowCount={rowCount}
+              rowHeight={CELL_SIZE}
+              width={width}
+              itemData={{ users, columnCount }}
+            >
+              {Cell}
+            </Grid>
+          )
+        }}
+      </AutoSizer>
 
       <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
         {!isAuthenticated ? (
@@ -147,6 +160,6 @@ export default function ProfilePictureCanvas() {
         onVote={handleVote}
         users={users.filter(user => user.twitterId !== currentUser?.id)}
       />
-    </div>
+    </main>
   )
 }
