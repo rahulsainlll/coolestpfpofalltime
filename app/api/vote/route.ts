@@ -41,6 +41,10 @@ export async function POST(req: Request) {
         voterId: voter.id,
         votedUserId: votedUser.id,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 1,
     })
 
     // check if existing vote exists and if it is atleast 1 hour old to allow revoting
