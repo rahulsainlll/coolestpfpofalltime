@@ -14,10 +14,11 @@ import { debounce } from '@/utils/debounce'
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 
-const fetchUsers = async (): Promise<UserWithRelations[]> => {
-  const response = await fetch('/api/users', { cache: 'no-store' })
+const fetchUsers = async (): Promise<String[]> => {
+  const response = await fetch('/api/images', { cache: 'no-store' })
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-  return response.json()
+  const res = await response.json()
+  return res;
 }
 
 const checkOrCreateUser = async (): Promise<UserWithRelations> => {
@@ -38,8 +39,8 @@ const Cell = ({ columnIndex, rowIndex, style, data }: any) => {
   return (
     <div style={style}>
       <Image
-        src={user.pfpUrl || "/fallbackAvatar.png"}
-        alt={`${user.username || 'User'}'s profile picture`}
+        src={`https://pbs.twimg.com/profile_images/${user}.jpg` || "/fallbackAvatar.png"}
+        alt={`Cell Image ${index}`}
         width={CELL_SIZE}
         height={CELL_SIZE}
         className="object-cover"
@@ -50,7 +51,7 @@ const Cell = ({ columnIndex, rowIndex, style, data }: any) => {
 }
 
 export default function ProfilePictureCanvas() {
-  const [users, setUsers] = useState<UserWithRelations[]>([])
+  const [users, setUsers] = useState<String[]>([])
   const [currentUserData, setCurrentUserData] = useState<UserWithRelations | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
@@ -78,24 +79,6 @@ export default function ProfilePictureCanvas() {
 
     loadData()
   }, [isAuthenticated, currentUser])
-
-  const handleVote = useCallback(async (votedUserId: number) => {
-    if (!currentUser || !isAuthenticated) return
-    try {
-      const response = await fetch('/api/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ votedUserId }),
-      })
-      if (!response.ok) throw new Error('Voting failed')
-      const updatedUsers = await fetchUsers()
-      setUsers(updatedUsers)
-      setIsVoteModalOpen(false)
-    } catch (error) {
-      console.error('Error voting:', error)
-      setError('Failed to cast vote. Please try again.')
-    }
-  }, [currentUser, isAuthenticated])
 
   if (isLoading) return <Loader />
   if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
@@ -157,8 +140,8 @@ export default function ProfilePictureCanvas() {
       <VoteModal
         isOpen={isVoteModalOpen}
         onClose={() => setIsVoteModalOpen(false)}
-        onVote={handleVote}
-        users={users.filter(user => user.twitterId !== currentUser?.id)}
+        currentUser={currentUser}
+        isAuthenticated={isAuthenticated}
       />
     </main>
   )

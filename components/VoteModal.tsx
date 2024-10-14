@@ -1,18 +1,21 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, use, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { UserWithRelations } from '@/types'
 import { motion, AnimatePresence } from "framer-motion"
 import { Loader2 } from "lucide-react"
+import { KindeUser } from '@kinde-oss/kinde-auth-nextjs/types'
 
 interface VoteModalProps {
   isOpen: boolean
   onClose: () => void
-  onVote: (userId: number) => Promise<void>
-  users: UserWithRelations[]
+  currentUser: KindeUser<Record<string, string>> | null
+  isAuthenticated: boolean | null
+  // onVote: (userId: number) => Promise<void>
+  // users: UserWithRelations[]
 }
 
 const products = [
@@ -21,15 +24,54 @@ const products = [
   { name: "rarepepes", url: "https://rarepepes.net/search", logo: "/rp2.png" }
 ]
 
-export function VoteModal({ isOpen, onClose, onVote, users }: VoteModalProps) {
+const fetchUsers = async (): Promise<UserWithRelations[]> => {
+  const response = await fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ limit: 4, randomised: true }),
+  })
+  if (!response.ok) {
+    console.error('Failed to fetch users')
+    return []
+  }
+  const users = await response.json()
+  console.log(users)
+  return users
+}
+
+export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated }: VoteModalProps) {
   const [selectedUser, setSelectedUser] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [users, setUsers] = useState<UserWithRelations[]>([])
+
+  useEffect(() => {
+    if (isOpen && isAuthenticated && currentUser) {
+      fetchUsers().then(setUsers);
+    }
+  }, [isOpen, isAuthenticated, currentUser])
+
+  const onVote = useCallback(async (votedUserId: number) => {
+    if (!currentUser || !isAuthenticated) return
+    try {
+      const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ votedUserId }),
+      })
+      if (!response.ok) throw new Error('Voting failed')
+      fetchUsers().then(setUsers)
+    } catch (error) {
+      console.error('Error voting:', error)
+      setError('Failed to cast vote. Please try again.')
+    }
+  }, [currentUser, isAuthenticated])
   
   const voteOptions = useMemo(() => {
     return users
       .sort(() => 0.5 - Math.random())
       .slice(0, 4)
-  }, [users])
+  }, [isOpen])
 
   const handleVote = useCallback(async () => {
     if (selectedUser !== null) {

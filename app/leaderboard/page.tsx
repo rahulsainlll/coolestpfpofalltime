@@ -20,7 +20,11 @@ export default function Leaderboard() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const response = await fetch('/api/users')
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ limit: 30, orderByTotalVotes: true }),
+        })
         if (!response.ok) throw new Error('Failed to fetch users')
         const rawUsers = await response.json()
         const processedUsers = rawUsers.map((user: User & { votesReceived: any[] }) => ({
