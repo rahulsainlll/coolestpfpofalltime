@@ -6,6 +6,8 @@ import VoteButton from "./vote-button";
 import { getKindeServerSession, LoginLink } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Button } from "./ui/button";
 import ProfileShareButton from "./profile-share-button";
+import Link from "next/link";
+import { LucideBoxSelect, LucideListOrdered } from "lucide-react";
 
 export default async function UserPage({ twitterId }: { twitterId: string }) {
   const { isAuthenticated, getUser } = getKindeServerSession();
@@ -49,10 +51,16 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
   <Layout className="flex flex-col items-center justify-center h-dvh">
       <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
         <Button asChild className="rounded-xl mt-4 font-mono">
-          <a href="/">Canvas</a>
+          <Link href="/">
+            <LucideBoxSelect size={14} className="mr-2" />
+            Canvas
+          </Link>
         </Button>
         <Button asChild className="rounded-xl mt-4 font-mono">
-          <a href="/leaderboard">Leaderboard</a>
+          <Link href="/leaderboard">
+            <LucideListOrdered size={14} className="mr-2" />
+            Leaderboard
+          </Link>
         </Button>
       </div>
 

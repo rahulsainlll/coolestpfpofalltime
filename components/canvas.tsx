@@ -9,6 +9,7 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import { UserWithRelations } from "@/types/types"
 import Link from "next/link"
 import Loader from "./Loader"
+import { LucideListOrdered, LucideLogIn, LucideLogOut, LucideStar } from "lucide-react"
 import { debounce } from '@/utils/debounce'
 
 const fetchUsers = async (): Promise<UserWithRelations[]> => {
@@ -113,16 +114,28 @@ export default function ProfilePictureCanvas() {
       <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
         {!isAuthenticated ? (
           <LoginLink>
-            <Button className="rounded-xl">Sign In To Vote</Button>
+            <Button className="rounded-xl">
+              <LucideLogIn size={14} className="mr-2" />
+              Sign In To Vote
+            </Button>
           </LoginLink>
         ) : (
           <>
-            <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">Vote Profiles</Button>
+            <Button onClick={() => setIsVoteModalOpen(true)} className="rounded-xl">
+              <LucideStar size={14} className="mr-2" />
+              Vote Profiles
+            </Button>
             <Link href="/leaderboard">
-              <Button className="rounded-xl">Leaderboard</Button>
+              <Button className="rounded-xl">
+                <LucideListOrdered size={14} className="mr-2" />
+                Leaderboard
+              </Button>
             </Link>
             <LogoutLink>
-              <Button className="rounded-xl">Log out</Button>
+              <Button className="rounded-xl">
+                <LucideLogOut size={14} className="mr-2" />
+                Log out
+              </Button>
             </LogoutLink>
           </>
         )}
