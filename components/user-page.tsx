@@ -5,6 +5,7 @@ import { colorHash } from "@/lib/utils";
 import VoteButton from "./vote-button";
 import { getKindeServerSession, LoginLink } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Button } from "./ui/button";
+import ProfileShareButton from "./profile-share-button";
 
 export default async function UserPage({ twitterId }: { twitterId: string }) {
   const { isAuthenticated, getUser } = getKindeServerSession();
@@ -67,9 +68,10 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
             <Button disabled className="rounded-xl mt-4 font-mono">You can vote again in {Math.ceil((3600000 - timeSinceLastVote) / 60000)} minutes</Button>
           )
         }
-        {isUserAuthenticated && currentUser.id === user.twitterId && ( <Button disabled className="rounded-xl mt-4 font-mono">Cannot Vote For Yourself :p</Button> )}
         {!isUserAuthenticated && (<LoginLink><Button className="rounded-xl mt-4 font-mono">Sign In To Vote</Button></LoginLink>)}
 
+
+        <ProfileShareButton _username={user.username} self={currentUser.id === user.twitterId} />
       </div>
     </Layout>
   )

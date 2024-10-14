@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const username = `${user.given_name} ${user.family_name}` || "MISSINGNO:";
+  const username = `${user.given_name ?? ""}${user.family_name ? ` ${user.family_name}` : ""}`.trim() || "MISSINGNO:";
   const pictureUrl = user.picture || "/fallbackAvatar.png";
 
   try {
