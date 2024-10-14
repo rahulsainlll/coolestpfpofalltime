@@ -31,7 +31,7 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
 
   // find how much time it has been since last vote by user
   const lastVote = (currentUser && currentUser.id) ? user.votesReceived.find((vote) => vote.voterId === currentUserData?.id) : null;
-  const timeSinceLastVote = lastVote ? new Date().getTime() - lastVote.createdAt.getTime() : null;
+  const timeSinceLastVote = lastVote ? new Date().getTime() - lastVote.createdAt.getTime() : 3600000;
 
   return (
   <Layout className="flex flex-col items-center justify-center h-dvh">
@@ -57,7 +57,7 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
 
 
         {
-          isUserAuthenticated && currentUser.id !== user.twitterId && (timeSinceLastVote && timeSinceLastVote > 3600000)
+          isUserAuthenticated && currentUser.id !== user.twitterId && (timeSinceLastVote && timeSinceLastVote >= 3600000)
           && (
             <VoteButton username={user.username || "User"} id={user.id} />
           )

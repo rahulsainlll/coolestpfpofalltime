@@ -15,9 +15,10 @@ function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number
     : "from-gray-200 via-gray-100 to-gray-200";
 
   return (
-    <motion.div 
+    <motion.a 
       className={`relative flex flex-col items-center justify-center p-4 border-[1px] rounded-2xl max-w-[160px] mx-auto bg-white overflow-hidden`}
       whileHover={{ y: -5, transition: { duration: 0.3 } }}
+      href={`/u/${user.twitterId}`}
     >
       <div className={`absolute inset-0 bg-gradient-to-bl ${gradientClass} opacity-60 animate-gradient-diagonal-slow`}></div>
       <div className="relative z-10">
@@ -35,7 +36,7 @@ function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number
         <p className="text-sm text-gray-600 text-center">Rank: #{rank}</p>
         <p className="text-sm text-green-600 font-mono text-center">Votes: {user.totalVotes}</p>
       </div>
-    </motion.div>
+    </motion.a>
   );
 }
 

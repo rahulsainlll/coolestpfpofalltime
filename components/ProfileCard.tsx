@@ -14,9 +14,10 @@ export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank:
     : "from-gray-200 via-gray-100 to-gray-200";
 
   return (
-    <motion.div
+    <motion.a
       className={`relative flex flex-col items-center justify-center p-2 border-[1px] rounded-xl max-w-[160px] mx-auto bg-white overflow-hidden`}
       whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+      href={`/u/${user.twitterId}`}
     >
       <div className={`absolute inset-0 bg-gradient-to-bl ${gradientClass} opacity-60`}></div>
       <div className="relative z-10">
@@ -41,6 +42,6 @@ export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank:
         <p className="text-xs text-gray-600 text-center">Rank: #{rank}</p>
         <p className="text-xs text-green-600 font-mono text-center">Votes: {user.totalVotes}</p>
       </div>
-    </motion.div>
+    </motion.a>
   );
 }
