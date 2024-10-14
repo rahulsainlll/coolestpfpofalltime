@@ -24,9 +24,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUserCreated }) => {
       const user = await getUser();
       const username = user.given_name;
 
-      console.log('Authenticated user:', user);
-      console.log('User picture URL:', user.picture);
-
       try {
         const existingUser = await prisma.user.findUnique({
           where: { twitterId: user.id },
@@ -44,7 +41,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onUserCreated }) => {
           console.log('User created successfully');
           onUserCreated(); // Call the prop function to indicate user creation
         } else {
-          console.log('User already exists:', existingUser);
+          console.warn('User already exists:', existingUser.id);
         }
       } catch (error) {
         console.error('Error creating user:', error);
