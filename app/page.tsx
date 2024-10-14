@@ -1,6 +1,5 @@
 import FullPageCanvas from "@/components/canvas";
-import { User } from "@prisma/client";
-import Image from "next/image";
+import { UserWithRelations } from "@/types/types";
 
 const fetchUsers = async () => {
   try {
@@ -15,6 +14,6 @@ const fetchUsers = async () => {
 };
 
 export default async function Home() {
-  const fetchedUsers: User[] = await fetchUsers();
+  const fetchedUsers: UserWithRelations[] = await fetchUsers();
   return <FullPageCanvas fetchedUsers={fetchedUsers} />;
 }
