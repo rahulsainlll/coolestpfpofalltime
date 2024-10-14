@@ -6,6 +6,9 @@ import ProfileCard from "@/components/ProfileCard"
 import ExtendedLeaderboard from "@/components/ExtendedLeaderboard"
 import { User } from "@prisma/client"
 import { Loader2 } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs"
 
 type UserWithVotes = User & {
   totalVotes: number
@@ -57,6 +60,15 @@ export default function Leaderboard() {
           <ExtendedLeaderboard users={users} />
         </>
       )}
+
+      <div className="fixed flex items-center justify-center gap-2 p-2 px-3 bg-white shadow bottom-4 right-4 rounded-2xl">
+        <Link href="/">
+          <Button className="rounded-xl">Canvas</Button>
+        </Link>
+        <Link href="/me">
+          <Button className="rounded-xl">My Profile</Button>
+        </Link>
+      </div>
     </Layout>
   )
 }
