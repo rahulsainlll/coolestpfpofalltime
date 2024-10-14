@@ -46,7 +46,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated }: Vot
   const [users, setUsers] = useState<UserWithRelations[]>([])
 
   useEffect(() => {
-    if (isOpen && isAuthenticated && currentUser) {
+    if (isAuthenticated && currentUser) {
       fetchUsers().then(setUsers);
     }
   }, [isOpen, isAuthenticated, currentUser])
