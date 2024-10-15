@@ -9,10 +9,15 @@ export async function GET() {
       },
     })
 
-    const urls = users.map(
-      (user) => user.pfpUrl?.replace('https://pbs.twimg.com/profile_images/', '')
-        .replace('.jpg', '')
-    )
+    const urls = users.map((user) => {
+      if (user.pfpUrl) {
+        // Return the full URL if it exists
+        return user.pfpUrl
+      } else {
+        // Return a fallback image URL if pfpUrl is null or undefined
+        return '/fallbackAvatar.png'
+      }
+    })
 
     return NextResponse.json(urls)
   } catch (error) {
