@@ -4,25 +4,16 @@ import { useState, useEffect, useCallback, memo } from "react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { VoteModal } from "./VoteModal"
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
+import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs"
 import Link from "next/link"
 import Loader from "./Loader"
-import { LucideListOrdered, LucideLogIn, LucideLogOut, LucideStar } from "lucide-react"
+import { LucideListOrdered, LucideLogIn, LucideStar, LucideUser } from "lucide-react"
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BrandLogo from "./brand-logo"
 import Nav from "./nav"
 import { UserWithRelations } from "@/types/types"
-
-function useInterval(callback: () => void, delay: number | null) {
-  useEffect(() => {
-    if (delay !== null) {
-      const id = setInterval(callback, delay)
-      return () => clearInterval(id)
-    }
-  }, [callback, delay])
-}
 
 const fetchUsers = async (): Promise<string[]> => {
   const response = await fetch('/api/images', { cache: 'no-store' })
@@ -77,12 +68,7 @@ export default function ProfilePictureCanvas() {
         fetchUsers(),
         isAuthenticated && currentUser ? checkOrCreateUser() : null
       ])
-      setUsers(prevUsers => {
-        if (JSON.stringify(fetchedUsers) !== JSON.stringify(prevUsers)) {
-          return fetchedUsers
-        }
-        return prevUsers
-      })
+      setUsers(fetchedUsers)
       setCurrentUserData(userData)
     } catch (err) {
       console.error('Error loading data:', err)
@@ -95,8 +81,6 @@ export default function ProfilePictureCanvas() {
   useEffect(() => {
     loadData()
   }, [loadData])
-
-  useInterval(loadData, 10000)
 
   if (isLoading) return <Loader />
   if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
@@ -150,7 +134,7 @@ export default function ProfilePictureCanvas() {
             </Link>
             <Link href="/me">
               <Button className="rounded-xl">
-                <LucideListOrdered size={14} className="mr-2" />
+                <LucideUser size={14} className="mr-2" />
                 Me
               </Button>
             </Link>
