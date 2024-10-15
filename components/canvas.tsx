@@ -67,6 +67,33 @@ export default function ProfilePictureCanvas() {
 
   const { toast } = useToast()
 
+  const loadData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const [fetchedUsers, userData] = await Promise.all([
+        fetchUsers(),
+        isAuthenticated && currentUser ? checkOrCreateUser() : null
+      ])
+      setUsers(fetchedUsers)
+      setCurrentUserData(userData)
+    } catch (err) {
+      console.error('Error loading data:', err)
+      setError('Failed to load data. Please try again later.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isAuthenticated, currentUser])
+
+  useEffect(() => {
+    loadData()
+
+    // Set up an interval to refresh data every 5 minutes
+    const intervalId = setInterval(loadData, 5 * 60 * 1000)
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId)
+  }, [loadData])
+
   useEffect(() => { 
     const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.vercel.app%2F";
     toast({
@@ -85,26 +112,6 @@ export default function ProfilePictureCanvas() {
       ),
     })
    }, [])
-
-  const loadData = useCallback(async () => {
-    try {
-      const [fetchedUsers, userData] = await Promise.all([
-        fetchUsers(),
-        isAuthenticated && currentUser ? checkOrCreateUser() : null
-      ])
-      setUsers(fetchedUsers)
-      setCurrentUserData(userData)
-    } catch (err) {
-      console.error('Error loading data:', err)
-      setError('Failed to load data. Please try again later.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [isAuthenticated, currentUser])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
 
   if (isLoading) return <Loader error={null} />
   if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
@@ -172,6 +179,7 @@ export default function ProfilePictureCanvas() {
         onClose={() => setIsVoteModalOpen(false)}
         currentUser={currentUser}
         isAuthenticated={isAuthenticated}
+        onVoteComplete={loadData}
       />
     </main>
   )
