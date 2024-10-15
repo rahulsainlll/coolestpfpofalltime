@@ -88,7 +88,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated }: Vot
     <Dialog open={isOpen} onOpenChange={(open) => !isVoting && onClose()}>
       <DialogContent className="sm:max-w-[700px] bg-white" aria-describedby="voting-modal">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center font-mono mb-6">Vote for the Coolest PFP</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center font-mono ">Vote for the Coolest PFP</DialogTitle>
         </DialogHeader>
         {voteOptions.length < 4 ? (
           <div className="text-center">
@@ -118,7 +118,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated }: Vot
             </div>
             <p className='text-center mt-3'>check out more on <a href='https://tpottools.com/' className='text-blue-800'>tpottools.com</a></p>
           </div>
-        ) : (
+        ) : (          
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
             <AnimatePresence>
               {voteOptions.map((user) => (
