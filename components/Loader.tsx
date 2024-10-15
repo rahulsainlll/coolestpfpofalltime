@@ -16,8 +16,9 @@ export default function Loader({ error, loadingMessage = "db-kun is working hard
             <Image
               src="/loader/error.png"
               alt="Error occurred"
-              width={200}
-              height={200}
+              width={492}
+              height={360}
+              className='aspect-[492/360] h-[150px] w-auto'
             />
             <div className="text-red-500 text-lg font-semibold">{error}</div>
           </>
@@ -26,8 +27,9 @@ export default function Loader({ error, loadingMessage = "db-kun is working hard
             <Image
               src="/loader/loader.gif"
               alt="Loading..."
-              width={200}
-              height={200}
+              width={492}
+              height={360}
+              className='aspect-[492/360] h-[150px] w-auto'
             />
             <h2 className="text-lg font-semibold text-gray-800 font-mono">{loadingMessage}</h2>
           </>
