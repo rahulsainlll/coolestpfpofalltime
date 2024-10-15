@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react"
 
 import { KindeSessionProvider } from '@/components/KindeSessionProvider'
 
@@ -33,6 +34,7 @@ export default async function RootLayout({
       >
         <KindeSessionProvider>
         {children}
+        <Analytics />
         </KindeSessionProvider>
       </body>
     </html>
