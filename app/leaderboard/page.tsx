@@ -1,11 +1,10 @@
 'use client'
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import Layout from "@/components/layout"
 import ProfileCard from "@/components/ProfileCard"
 import ExtendedLeaderboard from "@/components/ExtendedLeaderboard"
 import { User } from "@prisma/client"
-import { Loader2, LucideAppWindowMac, LucideBoxSelect, LucideUser } from "lucide-react"
+import { Loader2, LucideBoxSelect, LucideUser } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import BrandLogo from "@/components/brand-logo"
@@ -19,32 +18,32 @@ export default function Leaderboard() {
   const [users, setUsers] = useState<UserWithVotes[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const response = await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 30, leaderboard: true }),
-        })
-        if (!response.ok) throw new Error('Failed to fetch users')
-        const rawUsers = await response.json()
-        const processedUsers = rawUsers.map((user: User & { votesReceived: any[] }) => ({
-          ...user,
-          totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
-        }))
-        setUsers(processedUsers.sort((a: { totalVotes: number }, b: { totalVotes: number }) => b.totalVotes - a.totalVotes))
-      } catch (error) {
-        console.error('Error fetching users:', error)
-      } finally {
-        setLoading(false)
-      }
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 30, leaderboard: true }),
+      })
+      if (!response.ok) throw new Error('Failed to fetch users')
+      const rawUsers = await response.json()
+      const processedUsers = rawUsers.map((user: User & { votesReceived: any[] }) => ({
+        ...user,
+        totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
+      }))
+      setUsers(processedUsers.sort((a: { totalVotes: number }, b: { totalVotes: number }) => b.totalVotes - a.totalVotes))
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setLoading(false)
     }
-
-    fetchUsers()
   }, [])
 
-  const top3Users = users.slice(0, 3)
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
+
+  const top3Users = useMemo(() => users.slice(0, 3), [users])
 
   return (
     <Layout>
@@ -65,9 +64,7 @@ export default function Leaderboard() {
           <ExtendedLeaderboard users={users} />
         </>
       )}
-
       <BrandLogo />
-
       <Nav>
         <Button asChild className="rounded-xl">
           <Link href="/">
