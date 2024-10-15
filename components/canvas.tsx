@@ -19,9 +19,17 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 const fetchUsers = async (): Promise<string[]> => {
-  const response = await fetch('/api/images', { cache: 'no-store' })
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-  const res = await response.json()
+  const timestamp = new Date().getTime();
+  const response = await fetch(`/api/images?t=${timestamp}`, {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+    },
+  });
+  
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  const res = await response.json();
   return res;
 }
 
@@ -95,7 +103,7 @@ export default function ProfilePictureCanvas() {
   }, [loadData])
 
   useEffect(() => { 
-    const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.vercel.app%2F";
+    const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.com%2F";
     toast({
       // duration: 20000, // TODO: fix this duration later
       className: cn(
