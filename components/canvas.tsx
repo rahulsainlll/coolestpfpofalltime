@@ -13,6 +13,7 @@ import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BrandLogo from "./brand-logo"
 import Nav from "./nav"
+import { UserWithRelations } from "@/types/types"
 
 function useInterval(callback: () => void, delay: number | null) {
   useEffect(() => {
@@ -28,6 +29,13 @@ const fetchUsers = async (): Promise<string[]> => {
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
   const res = await response.json()
   return res;
+}
+
+const checkOrCreateUser = async (): Promise<UserWithRelations> => {
+  const response = await fetch('/api/create', { method: 'POST' })
+  if (!response.ok) throw new Error('Failed to create or fetch user')
+  const data = await response.json()
+  return data.currUser
 }
 
 const CELL_SIZE = 70
@@ -58,26 +66,31 @@ export default function ProfilePictureCanvas() {
   const [users, setUsers] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
+  const [currentUserData, setCurrentUserData] = useState<UserWithRelations | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { isAuthenticated, getUser } = useKindeAuth()
   const currentUser = getUser()
 
   const loadData = useCallback(async () => {
     try {
-      const fetchedUsers = await fetchUsers()
+      const [fetchedUsers, userData] = await Promise.all([
+        fetchUsers(),
+        isAuthenticated && currentUser ? checkOrCreateUser() : null
+      ])
       setUsers(prevUsers => {
         if (JSON.stringify(fetchedUsers) !== JSON.stringify(prevUsers)) {
           return fetchedUsers
         }
         return prevUsers
       })
+      setCurrentUserData(userData)
     } catch (err) {
       console.error('Error loading data:', err)
       setError('Failed to load data. Please try again later.')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [isAuthenticated, currentUser])
 
   useEffect(() => {
     loadData()
@@ -137,12 +150,19 @@ export default function ProfilePictureCanvas() {
                 Leaderboard
               </Button>
             </Link>
-            <LogoutLink>
+            <Link href="/me">
+              <Button className="rounded-xl">
+                <LucideListOrdered size={14} className="mr-2" />
+                Me
+              </Button>
+            </Link>
+
+            {/* <LogoutLink>
               <Button className="rounded-xl">
                 <LucideLogOut size={14} className="sm:mr-2" />
                 <span className="hidden sm:block">Log out</span>
               </Button>
-            </LogoutLink>
+            </LogoutLink> */}
           </>
         )}
       </Nav>
