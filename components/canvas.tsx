@@ -70,7 +70,7 @@ export default function ProfilePictureCanvas() {
   useEffect(() => { 
     const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.vercel.app%2F";
     toast({
-      duration: 20000,
+      // duration: 20000, // TODO: fix this duration later
       className: cn(
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 bg-white'
       ),

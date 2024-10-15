@@ -13,11 +13,12 @@ import { LucideBoxSelect, LucideListOrdered, LucideLogOut } from "lucide-react"
 import Nav from "./nav"
 import BrandLogo from "./brand-logo"
 import Loader from "./Loader"
+import { UserWithRelations } from "@/types/types"
 
 export default function UserPage({ twitterId }: { twitterId: string }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userData, setUserData] = useState<any>(null)
+  const [userData, setUserData] = useState<UserWithRelations | null>(null)
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [timeSinceLastVote, setTimeSinceLastVote] = useState<number | null>(null)
