@@ -5,10 +5,6 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 export async function POST(req: NextRequest) {
   const { getUser } = getKindeServerSession()
   const user = await getUser()
-  
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
 
   const { limit, leaderboard } = await req.json();
 
@@ -17,10 +13,10 @@ export async function POST(req: NextRequest) {
   try {
     const users = await prisma.user.findMany({
       where: {
-        twitterId: leaderboard ? undefined : {
+        twitterId: leaderboard || !(user && user.id) ? undefined : {
           not: user.id,
         },
-        votesReceived: leaderboard ? undefined : 
+        votesReceived: leaderboard || !(user && user.id) ? undefined : 
         {
           none: {
             createdAt: { gt: oneHourAgo },
