@@ -18,7 +18,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Coolest pfp of all time",
-  description: "Vote for favorite pfp 🗿",
+  description: "do you think your pfp is the coolest? find out here ✨",
 };
 
 export default async function RootLayout({
