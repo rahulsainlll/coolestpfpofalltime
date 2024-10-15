@@ -92,7 +92,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated }: Vot
         </DialogHeader>
         {voteOptions.length < 4 ? (
           <div className="text-center">
-            <p className="text-lg mb-4">Not enough users to vote. Please try again later.</p>
+            <p className="text-lg mb-4">Not enough users to vote. Please try again 60 minutes later.</p>
             <p className="text-md font-semibold mb-2">Meanwhile, check out these awesome products:</p>
             <div className="grid grid-cols-3 gap-4">
               {products.map((product, index) => (

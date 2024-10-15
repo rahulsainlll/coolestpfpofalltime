@@ -35,7 +35,7 @@ function ExtendedProfileCard({ user, rank }: { user: UserWithVotes; rank: number
 }
 
 export default function ExtendedLeaderboard({ users }: { users: UserWithVotes[] }) {
-  const extendedUsers = users.slice(0); // Start from rank 6
+  const extendedUsers = users.slice(5); // Start from rank 6
 
   return (
     <div className="mt-12">
