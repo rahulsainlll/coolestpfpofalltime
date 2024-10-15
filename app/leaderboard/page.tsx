@@ -17,6 +17,7 @@ type UserWithVotes = User & {
 export default function Leaderboard() {
   const [users, setUsers] = useState<UserWithVotes[]>([])
   const [loading, setLoading] = useState(true)
+  const [totalVotes, setTotalVotes] = useState(0)
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -32,6 +33,7 @@ export default function Leaderboard() {
         totalVotes: user.votesReceived.reduce((sum, vote) => sum + vote.value, 0),
       }))
       setUsers(processedUsers.sort((a: { totalVotes: number }, b: { totalVotes: number }) => b.totalVotes - a.totalVotes))
+      setTotalVotes(processedUsers.reduce((sum: any, user: { totalVotes: any }) => sum + user.totalVotes, 0))
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
@@ -43,11 +45,15 @@ export default function Leaderboard() {
     fetchUsers()
   }, [fetchUsers])
 
-  const top3Users = useMemo(() => users.slice(0, 3), [users])
+  const top5Users = useMemo(() => users.slice(0, 5), [users])
 
   return (
     <Layout>
-      <h1 className="my-6 mb-12 text-2xl text-center font-mono font-bold">coolest pfp</h1>
+      <h1 className="text-3xl font-bold text-center mb-2 mt-8">Coolest PFP of All Time</h1>
+      <p className="text-xl text-center mb-8">🎉 {totalVotes.toLocaleString()} votes are in 🎉</p>
+      <p className="text-center mb-12 text-gray-600">
+        but you can still <a href="/" className="text-blue-600 hover:underline">vote</a> if you'd like
+      </p>
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin" />
@@ -55,8 +61,8 @@ export default function Leaderboard() {
       ) : (
         <>
           <div className="flex justify-center">
-            <div className="grid grid-cols-3 gap-6">
-              {top3Users.map((user, rank) => (
+            <div className="grid grid-cols-5 gap-6">
+              {top5Users.map((user, rank) => (
                 <ProfileCard key={user.id} user={user} rank={rank + 1} />
               ))}
             </div>

@@ -8,7 +8,7 @@ type UserWithVotes = User & {
 };
 
 export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank: number }) {
-  const isPremium = rank <= 3;
+  const isPremium = rank <= 5;
   const gradientClass = isPremium
     ? "from-yellow-200 via-sky-200 to-green-200"
     : "from-gray-200 via-gray-100 to-gray-200";
@@ -19,7 +19,7 @@ export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank:
       whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
       href={`/u/${user.twitterId}`}
     >
-      <div className={`absolute inset-0 bg-gradient-to-bl ${gradientClass} opacity-60`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-bl ${gradientClass} opacity-60 animate-gradient-diagonal-slow`}></div>
       <div className="relative z-10">
         <div className="relative">
           <Image
@@ -30,13 +30,15 @@ export default function ProfileCard({ user, rank }: { user: UserWithVotes; rank:
             height={150}
             objectFit="cover"
           />
-          <Image
-            src={`/ribbons/${rank}.png`}
-            className="absolute rounded-sm bottom-1 right-1 bg-white/80"
-            alt={`Rank ${rank} ribbon`}
-            width={20}
-            height={20}
-          />
+          {rank <= 3 && (
+            <Image
+              src={`/ribbons/${rank}.png`}
+              className="absolute rounded-sm bottom-1 right-1 bg-white/80"
+              alt={`Rank ${rank} ribbon`}
+              width={20}
+              height={20}
+            />
+          )}
         </div>
         <h1 className="mb-1 font-mono text-[12px] font-bold text-center text-gray-800 truncate w-full">{user.username}</h1>
         <p className="text-xs text-gray-600 text-center">Rank: #{rank}</p>

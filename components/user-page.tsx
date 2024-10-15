@@ -3,11 +3,11 @@ import Layout from "@/components/layout";
 import Image from "next/image";
 import { colorHash } from "@/lib/utils";
 import VoteButton from "./vote-button";
-import { getKindeServerSession, LoginLink } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getKindeServerSession, LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Button } from "./ui/button";
 import ProfileShareButton from "./profile-share-button";
 import Link from "next/link";
-import { LucideBoxSelect, LucideListOrdered } from "lucide-react";
+import { LucideBoxSelect, LucideListOrdered, LucideLogOut } from "lucide-react";
 import Nav from "./nav";
 import BrandLogo from "./brand-logo";
 
@@ -67,6 +67,12 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
             Leaderboard
           </Link>
         </Button>
+        <LogoutLink>
+              <Button className="rounded-xl mt-4 font-mono">
+                <LucideLogOut size={14} className="sm:mr-2" />
+                <span className="hidden sm:block">Log out</span>
+              </Button>
+            </LogoutLink>
       </Nav>
 
       <div className="relative flex flex-col items-center justify-center bg-gray-100 p-8 rounded-2xl max-w-lg w-full overflow-hidden cursor-default shadow">
