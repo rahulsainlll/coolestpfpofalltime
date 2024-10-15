@@ -100,7 +100,7 @@ export default function ProfilePictureCanvas() {
 
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId)
-  }, [loadData])
+  }, [])
 
   useEffect(() => { 
     const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.com%2F";

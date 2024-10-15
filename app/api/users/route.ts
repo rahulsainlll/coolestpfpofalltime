@@ -6,11 +6,12 @@ export async function POST(req: NextRequest) {
   const { getUser } = getKindeServerSession()
   const user = await getUser()
 
-  const { limit, leaderboard } = await req.json();
+  const { limit, leaderboard, randomised } = await req.json();
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
   try {
+    const count = await prisma.user.count()
     const users = await prisma.user.findMany({
       where: {
         twitterId: leaderboard || !(user && user.id) ? undefined : {
@@ -31,13 +32,25 @@ export async function POST(req: NextRequest) {
         pfpUrl: true,
         votesReceived: true,
       },
-      take: limit || 4,
+      take: limit || 30,
+      skip: randomised ? Math.floor(Math.random() * (count - (limit || 30))) : undefined,
       orderBy: leaderboard ? {
         votesReceived: {
           _count: 'desc',
         },
       } : undefined,
     })
+
+    // if (randomised) {
+    //   users.sort(() => Math.random() - 0.5)
+    // }
+
+    // if (limit) {
+    //   users.splice(limit)
+    // } else {
+    //   users.splice(30)
+    // }
+    
 
     return NextResponse.json(users)
   } catch (error) {
