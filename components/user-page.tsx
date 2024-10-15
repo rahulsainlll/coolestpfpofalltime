@@ -16,7 +16,7 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
 
   const isUserAuthenticated = await isAuthenticated();
   const currentUser = await getUser();
-  const currentUserData = await prisma.user.findUnique({
+  const currentUserData = currentUser && currentUser.id && await prisma.user.findUnique({
     where: { twitterId: currentUser.id },
   });
 
@@ -96,7 +96,7 @@ export default async function UserPage({ twitterId }: { twitterId: string }) {
         {!isUserAuthenticated && (<LoginLink><Button className="rounded-xl mt-4 font-mono">Sign In To Vote</Button></LoginLink>)}
 
 
-        <ProfileShareButton _username={user.username} self={currentUser.id === user.twitterId} />
+        <ProfileShareButton _username={user.username} self={currentUser && currentUser.id ? currentUser.id === user.twitterId : false} />
       </div>
     </Layout>
   )
