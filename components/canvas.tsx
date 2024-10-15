@@ -14,6 +14,9 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import BrandLogo from "./brand-logo"
 import Nav from "./nav"
 import { UserWithRelations } from "@/types/types"
+import { Toaster } from "./ui/toaster"
+import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 const fetchUsers = async (): Promise<string[]> => {
   const response = await fetch('/api/images', { cache: 'no-store' })
@@ -62,6 +65,27 @@ export default function ProfilePictureCanvas() {
   const { isAuthenticated, getUser } = useKindeAuth()
   const currentUser = getUser()
 
+  const { toast } = useToast()
+
+  useEffect(() => { 
+    const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.vercel.app%2F";
+    toast({
+      className: cn(
+        'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 bg-white'
+      ),
+      title: "We're super happy to see you here!",
+      description: (<p>
+        Made with ❤️ by 
+        <Link href="https://twitter.com/voltycodes" target="_blank" className="text-sky-500 font-semibold font-mono mx-[2px]">@voltycodes</Link> 
+        & 
+        <Link href="https://twitter.com/rahulsainlll" target="_blank" className="text-sky-500 font-semibold font-mono mx-[2px]">@rahulsainlll</Link>
+      </p>),
+      action: (
+        <Link className="border-2 p-1 px-3 text-sm rounded-xl" href={tweetIntent} target="_blank">Say Hello!</Link>
+      ),
+    })
+   }, [])
+
   const loadData = useCallback(async () => {
     try {
       const [fetchedUsers, userData] = await Promise.all([
@@ -87,6 +111,7 @@ export default function ProfilePictureCanvas() {
 
   return (
     <main className="fixed inset-0 overflow-hidden bg-gray-100 pt-16 md:pt-0">
+      <Toaster />
       <AutoSizer>
         {({ height, width }) => {
           const columnCount = Math.floor(width / CELL_SIZE)
