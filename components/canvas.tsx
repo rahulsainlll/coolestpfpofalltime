@@ -96,9 +96,7 @@ export default function ProfilePictureCanvas() {
     loadData()
   }, [loadData])
 
-  useInterval(() => {
-    loadData()
-  }, 10000)
+  useInterval(loadData, 10000)
 
   if (isLoading) return <Loader />
   if (error) return <div className="flex items-center justify-center h-full"><p className="text-red-500" role="alert">{error}</p></div>
@@ -156,13 +154,6 @@ export default function ProfilePictureCanvas() {
                 Me
               </Button>
             </Link>
-
-            {/* <LogoutLink>
-              <Button className="rounded-xl">
-                <LucideLogOut size={14} className="sm:mr-2" />
-                <span className="hidden sm:block">Log out</span>
-              </Button>
-            </LogoutLink> */}
           </>
         )}
       </Nav>

@@ -50,7 +50,7 @@ export default function Leaderboard() {
   return (
     <Layout>
       <h1 className="text-3xl font-bold text-center mb-2 mt-8">Coolest PFP of All Time</h1>
-      <p className="text-xl text-center mb-8">🎉 {totalVotes.toLocaleString()} votes are in 🎉</p>
+      <p className="text-xl text-center mb-2">🎉 {totalVotes.toLocaleString()} votes are in 🎉</p>
       <p className="text-center mb-12 text-gray-600">
         but you can still <a href="/" className="text-blue-600 hover:underline">vote</a> if you'd like
       </p>

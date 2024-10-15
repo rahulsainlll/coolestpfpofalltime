@@ -4,12 +4,13 @@ import Image from "next/image";
 import { colorHash } from "@/lib/utils";
 import VoteButton from "./vote-button";
 import { getKindeServerSession, LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/server";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import ProfileShareButton from "./profile-share-button";
 import Link from "next/link";
 import { LucideBoxSelect, LucideListOrdered, LucideLogOut } from "lucide-react";
 import Nav from "./nav";
 import BrandLogo from "./brand-logo";
+
 
 export default async function UserPage({ twitterId }: { twitterId: string }) {
   const { isAuthenticated, getUser } = getKindeServerSession();
