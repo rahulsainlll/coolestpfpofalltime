@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from './ui/button'
-import { LucideShare } from 'lucide-react';
+import { LucideCheck, LucideClipboard, LucideClipboardCheck, LucideShare } from 'lucide-react';
  
 export default function ProfileShareButton({self, _username}: {self: boolean, _username: string | null}) {
   const [intent, setIntent] = useState('');
@@ -19,22 +19,49 @@ export default function ProfileShareButton({self, _username}: {self: boolean, _u
     }
   }, [pathname, searchParams])
 
+  const [copiedState, setCopiedState] = useState(false);
+  const copyWindowURL = () => {
+    navigator.clipboard.writeText(window.location.href)
+    setCopiedState(true);
+  }
+
+  useEffect(() => {
+    // if copiedState is true, set it back to false after 3 seconds
+    if (copiedState) {
+      const timeout = setTimeout(() => {
+        setCopiedState(false);
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [copiedState])
+
   if (self) {
     return (
-      <Button disabled={!intent} className="rounded-xl mt-4 font-mono" asChild>
-        <a href={intent} target='_blank' className='flex gap-2 items-center justify-center'>
-          <LucideShare size={14} />
-          Share Your Profile on X
-        </a>
-      </Button>
+      <div className='flex items-center justify-center gap-2'>
+        {/* copy link to clipboard button */}
+        <Button className="rounded-xl mt-4 font-mono" size={"icon"} onClick={copyWindowURL}>
+          {copiedState ? <LucideCheck size={14} /> : <LucideClipboard size={14} />}
+        </Button>
+        <Button disabled={!intent} className="rounded-xl mt-4 font-mono" asChild>
+          <a href={intent} target='_blank' className='flex gap-2 items-center justify-center'>
+            <LucideShare size={14} />
+            Share Your Profile on X
+          </a>
+        </Button>
+      </div>
     )
   }
 
   return (
-    <Button disabled={!intent} className="absolute top-5 right-3 rounded-xl mt-4 font-mono" asChild size={'icon'}>
-      <a href={intent} target='_blank'>
-        <LucideShare size={16} />
-      </a>
-    </Button>
+    <div className='group'>
+      <Button disabled={!intent} className="absolute top-5 right-3 rounded-xl mt-4 font-mono z-50" asChild size={'icon'}>
+        <a href={intent} target='_blank'>
+          <LucideShare size={16} />
+        </a>
+      </Button>
+      <Button className="absolute top-5 right-3 rounded-xl mt-4 font-mono group-hover:top-16 transition-all duration-300 ease-in-out" size={"icon"} onClick={copyWindowURL}>
+        {copiedState ? <LucideCheck size={14} /> : <LucideClipboard size={14} />}
+      </Button>
+    </div>
   )
 }
