@@ -97,18 +97,19 @@ export default function ProfilePictureCanvas() {
   useEffect(() => { 
     const tweetIntent = "https://twitter.com/intent/post?text=yoo%20%40voltycodes%20%26%20%40rahulsainlll%2C%20just%20saying%20hi%20from%20Coolest%20PFP%20of%20All%20Time!&url=https%3A%2F%2Fcoolestpfpofalltime.vercel.app%2F";
     toast({
+      duration: 20000,
       className: cn(
         'top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 bg-white'
       ),
-      title: "We're super happy to see you here!",
+      title: "super happy to see you here anon <3",
       description: (<p>
-        Made with ❤️ by 
-        <Link href="https://twitter.com/voltycodes" target="_blank" className="text-sky-500 font-semibold font-mono mx-[2px]">@voltycodes</Link> 
-        & 
-        <Link href="https://twitter.com/rahulsainlll" target="_blank" className="text-sky-500 font-semibold font-mono mx-[2px]">@rahulsainlll</Link>
+        made with ❤️ by {` `}
+        <Link href="https://twitter.com/voltycodes" target="_blank" className="text-sky-500 font-semibold font-mono">@voltycodes</Link> 
+        {` `} & {` `}
+        <Link href="https://twitter.com/rahulsainlll" target="_blank" className="text-sky-500 font-semibold font-mono">@rahulsainlll</Link>
       </p>),
       action: (
-        <Link className="border-2 p-1 px-3 text-sm rounded-xl" href={tweetIntent} target="_blank">Say Hello!</Link>
+        <Link className="border-2 p-1 px-3 text-sm rounded-xl" href={tweetIntent} target="_blank">say hello!</Link>
       ),
     })
    }, [])
