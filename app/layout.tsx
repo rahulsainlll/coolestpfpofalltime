@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react"
-
-import { KindeSessionProvider } from '@/components/KindeSessionProvider'
+import { AuthProvider } from '@/context/auth-context'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,7 +21,7 @@ export const metadata: Metadata = {
   description: "do you think your pfp is the coolest? find out here ✨",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -32,10 +31,10 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <KindeSessionProvider>
-        {children}
-        <Analytics />
-        </KindeSessionProvider>
+        <AuthProvider>
+          {children}
+          <Analytics />
+        </AuthProvider>
       </body>
     </html>
   );

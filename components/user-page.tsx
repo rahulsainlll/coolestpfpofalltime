@@ -5,7 +5,6 @@ import Layout from "@/components/layout"
 import Image from "next/image"
 import { colorHash } from "@/lib/utils"
 import VoteButton from "./vote-button"
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components"
 import { Button } from "@/components/ui/button"
 import ProfileShareButton from "./profile-share-button"
 import Link from "next/link"
@@ -14,26 +13,29 @@ import Nav from "./nav"
 import BrandLogo from "./brand-logo"
 import Loader from "./Loader"
 import { UserWithRelations } from "@/types/types"
+import { useAuth } from '@/context/auth-context'
 
 export default function UserPage({ twitterId }: { twitterId: string }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userData, setUserData] = useState<UserWithRelations | null>(null)
-  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [timeSinceLastVote, setTimeSinceLastVote] = useState<number | null>(null)
+
+  const { user, logout, token } = useAuth()
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`/api/user/${twitterId}`)
+        const response = await fetch(`/api/user/${twitterId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         if (!response.ok) {
           throw new Error('Failed to fetch user data')
         }
         const data = await response.json()
         setUserData(data.user)
-        setIsUserAuthenticated(data.isUserAuthenticated)
-        setCurrentUser(data.currentUser)
         setTimeSinceLastVote(data.timeSinceLastVote)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
@@ -42,8 +44,10 @@ export default function UserPage({ twitterId }: { twitterId: string }) {
       }
     }
 
-    fetchUserData()
-  }, [twitterId])
+    if (token) {
+      fetchUserData()
+    }
+  }, [twitterId, token])
 
   if (isLoading || error) {
     return <Loader error={error} loadingMessage="Loading user profile..." />
@@ -71,12 +75,10 @@ export default function UserPage({ twitterId }: { twitterId: string }) {
             Leaderboard
           </Link>
         </Button>
-        <LogoutLink>
-          <Button className="rounded-xl mt-4 font-mono">
-            <LucideLogOut size={14} className="sm:mr-2" />
-            <span className="hidden sm:block">Log out</span>
-          </Button>
-        </LogoutLink>
+        <Button onClick={logout} className="rounded-xl mt-4 font-mono">
+          <LucideLogOut size={14} className="sm:mr-2" />
+          <span className="hidden sm:block">Log out</span>
+        </Button>
       </Nav>
 
       <div className="relative flex flex-col items-center justify-center bg-gray-100 p-8 rounded-2xl max-w-lg w-full overflow-hidden cursor-default shadow">
@@ -86,19 +88,21 @@ export default function UserPage({ twitterId }: { twitterId: string }) {
         </div>
         <h1 className="font-mono text-xl font-bold text-center mb-2">{userData.username}</h1>
         <div className="flex gap-2 mb-5">
-          <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Voted For: {userData.votesGiven.length} Users</p>
-          <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Votes By: {userData.votesReceived.length} Users</p>
+          <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Voted For:  {userData.votesGiven.length} Users</p>
+          <p className="text-sm p-2 px-4 rounded-full bg-white border-2 font-mono">Voted By: {userData.votesReceived.length} Users</p>
         </div>
 
-        {isUserAuthenticated && currentUser && currentUser.id !== userData.twitterId && timeSinceLastVote && timeSinceLastVote >= 3600000 && (
+        {user && user.id.toString() !== userData.twitterId && timeSinceLastVote && timeSinceLastVote >= 3600000 && (
           <VoteButton username={userData.username || "User"} id={userData.id} />
         )}
-        {isUserAuthenticated && currentUser && currentUser.id !== userData.twitterId && timeSinceLastVote && timeSinceLastVote < 3600000 && (
+        {user && user.id.toString() !== userData.twitterId && timeSinceLastVote && timeSinceLastVote < 3600000 && (
           <Button disabled className="rounded-xl mt-4 font-mono">You can vote again in {Math.ceil((3600000 - timeSinceLastVote) / 60000)} minutes</Button>
         )}
-        {!isUserAuthenticated && (<LoginLink><Button className="rounded-xl mt-4 font-mono">Sign In To Vote</Button></LoginLink>)}
+        {!user && (
+          <Button onClick={() => {/* Open AuthModal */}} className="rounded-xl mt-4 font-mono">Sign In To Vote</Button>
+        )}
 
-        <ProfileShareButton _username={userData.username} self={currentUser && currentUser.id ? currentUser.id === userData.twitterId : false} />
+        <ProfileShareButton _username={userData.username} self={user ? user.id.toString() === userData.twitterId : false} />
       </div>
     </Layout>
   )

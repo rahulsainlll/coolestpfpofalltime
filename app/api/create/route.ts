@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from "@/lib/prisma";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { verifyAuth } from '@/lib/auth';
 
-export async function POST(req: Request) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-  
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+interface AuthenticatedRequest extends NextRequest {
+  user: {
+    twitterId: string;
+    username: string;
+    pfpUrl: string;
+  };
+}
 
-  const username = `${user.given_name ?? ""}${user.family_name ? ` ${user.family_name}` : ""}`.trim() || "MISSINGNO:";
-  const pictureUrl = user.picture || "/fallbackAvatar.png";
+async function createUser(req: AuthenticatedRequest) {
+  const { twitterId, username, pfpUrl } = req.user; // User data extracted from verified token
 
   try {
     const existingUser = await prisma.user.findUnique({
-      where: { twitterId: user.id },
+      where: { twitterId },
     });
 
     if (existingUser) {
@@ -24,15 +24,20 @@ export async function POST(req: Request) {
 
     const newUser = await prisma.user.create({
       data: {
-        twitterId: user.id,
-        username: username,
-        pfpUrl: pictureUrl,
+        twitterId,
+        username,
+        pfpUrl,
       },
     });
 
-    return NextResponse.json({message: 'User created!', currUser: newUser}, { status: 201 });
+    return NextResponse.json({ message: 'User created!', currUser: newUser }, { status: 201 });
   } catch (error) {
     console.error("Error creating user:", error);
     return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
   }
+}
+
+// Wrap the handler with verifyAuth
+export async function POST(req: NextRequest) {
+  return verifyAuth(createUser)(req);
 }

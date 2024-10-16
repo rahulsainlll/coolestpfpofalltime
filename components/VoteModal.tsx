@@ -7,13 +7,12 @@ import Image from "next/image"
 import { UserWithRelations } from '@/types'
 import { motion, AnimatePresence } from "framer-motion"
 import { Loader2 } from "lucide-react"
-import { KindeUser } from '@kinde-oss/kinde-auth-nextjs/types'
 
 interface VoteModalProps {
   isOpen: boolean
   onClose: () => void
-  currentUser: KindeUser<Record<string, string>> | null
-  isAuthenticated: boolean | null
+  currentUser: UserWithRelations | null
+  token: string | null
   onVoteComplete: () => void
 }
 
@@ -23,10 +22,13 @@ const products = [
   { name: "rarepepes", url: "https://rarepepes.net/search", logo: "/rp2.png" }
 ]
 
-const fetchUsers = async (): Promise<UserWithRelations[]> => {
+const fetchUsers = async (token: string): Promise<UserWithRelations[]> => {
   const response = await fetch('/api/users', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify({ limit: 4, randomised: true }),
   })
   if (!response.ok) {
@@ -35,7 +37,7 @@ const fetchUsers = async (): Promise<UserWithRelations[]> => {
   return await response.json()
 }
 
-export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated, onVoteComplete }: VoteModalProps) {
+export function VoteModal({ isOpen, onClose, currentUser, token, onVoteComplete }: VoteModalProps) {
   const [selectedUser, setSelectedUser] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,11 +45,11 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated, onVot
   const [isLoading, setIsLoading] = useState(true)
 
   const loadUsers = useCallback(async () => {
-    if (isAuthenticated && currentUser) {
+    if (token) {
       setIsLoading(true)
       setError(null)
       try {
-        const fetchedUsers = await fetchUsers()
+        const fetchedUsers = await fetchUsers(token)
         setUsers(fetchedUsers)
       } catch (err) {
         console.error('Error fetching users:', err)
@@ -56,7 +58,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated, onVot
         setIsLoading(false)
       }
     }
-  }, [isAuthenticated, currentUser])
+  }, [token])
 
   useEffect(() => {
     if (isOpen) {
@@ -65,13 +67,16 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated, onVot
   }, [isOpen, loadUsers])
 
   const onVote = useCallback(async (votedUserId: number) => {
-    if (!currentUser || !isAuthenticated) return
+    if (!currentUser || !token) return
     setIsVoting(true)
     setError(null)
     try {
       const response = await fetch('/api/vote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ votedUserId }),
       })
       if (!response.ok) throw new Error('Voting failed')
@@ -83,7 +88,7 @@ export function VoteModal({ isOpen, onClose, currentUser, isAuthenticated, onVot
     } finally {
       setIsVoting(false)
     }
-  }, [currentUser, isAuthenticated, onVoteComplete, onClose])
+  }, [currentUser, token, onVoteComplete, onClose])
 
   const handleVote = useCallback(() => {
     if (selectedUser !== null) {

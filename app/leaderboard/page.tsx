@@ -24,7 +24,7 @@ export default function Leaderboard() {
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: 30, leaderboard: true }),
+        body: JSON.stringify({ limit: 95, leaderboard: true }),
       })
       if (!response.ok) throw new Error('Failed to fetch users')
       const rawUsers = await response.json()

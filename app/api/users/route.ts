@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         pfpUrl: true,
         votesReceived: true,
       },
-      take: limit || 30,
+      take: limit || 100,
       skip: randomised ? Math.floor(Math.random() * (count - (limit || 30))) : undefined,
       orderBy: leaderboard ? {
         votesReceived: {
